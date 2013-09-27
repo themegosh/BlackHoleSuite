@@ -1,0 +1,32 @@
+<?xml version="1.0" encoding="utf-8"?>
+<Totals xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:xsd="http://www.w3.org/2001/XMLSchema">
+  <counter_start_date>0001-01-01T00:00:00</counter_start_date>
+  <counter_uploaded>1619310334</counter_uploaded>
+  <counter_downloaded>19120082601</counter_downloaded>
+  <downloads>
+    <Day date="07/10/2013" traffic="584947343" />
+    <Day date="07/06/2013" traffic="225895996" />
+    <Day date="07/12/2013" traffic="6123632397" />
+    <Day date="08/07/2013" traffic="110153381" />
+    <Day date="07/09/2013" traffic="506138027" />
+    <Day date="07/15/2013" traffic="626146583" />
+    <Day date="07/13/2013" traffic="591113900" />
+    <Day date="07/11/2013" traffic="9637089068" />
+    <Day date="07/07/2013" traffic="228665" />
+    <Day date="07/08/2013" traffic="284971" />
+    <Day date="07/14/2013" traffic="714452270" />
+  </downloads>
+  <uploads>
+    <Day date="07/10/2013" traffic="18458792" />
+    <Day date="07/06/2013" traffic="6788734" />
+    <Day date="07/12/2013" traffic="227694549" />
+    <Day date="08/07/2013" traffic="109853999" />
+    <Day date="07/09/2013" traffic="125815814" />
+    <Day date="07/15/2013" traffic="22483779" />
+    <Day date="07/13/2013" traffic="127262037" />
+    <Day date="07/11/2013" traffic="921393108" />
+    <Day date="07/07/2013" traffic="73195" />
+    <Day date="07/08/2013" traffic="268190" />
+    <Day date="07/14/2013" traffic="59218137" />
+  </uploads>
+</Totals>
