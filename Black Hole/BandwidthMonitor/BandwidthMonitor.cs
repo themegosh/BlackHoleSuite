@@ -12,7 +12,7 @@ namespace Black_Hole
 
         //Definitions
         private Thread bgWorkerBandwidthMonitor;
-        private NetworkMonitor monitor = new NetworkMonitor();
+        private NetworkMonitor monitor;
         private double downspeed = 0.0;
         private double upspeed = 0.0;
         private double totalDown = 0.0;
@@ -50,6 +50,18 @@ namespace Black_Hole
 
         public BandwidthMonitor()
         {
+            try
+            {
+                monitor = new NetworkMonitor();
+            }
+            catch
+            {
+                MessageBox.Show("It appears that attempting to use the .NET 4.0 PerformanceCounters has caused a fatal error. There is a chance that some values in your registry is corrupted.",
+                    "Bandwidth Meter Failed.",
+                    MessageBoxButtons.OK,
+                    MessageBoxIcon.Error);
+            }
+
             //if were going to monitor the bandwidth, we need adapters to watch
             if (monitor.Adapters.Length == 0)
             {
@@ -174,17 +186,29 @@ namespace Black_Hole
 
         public double GetTodaysUp()
         {
+            string dateNow = DateTime.Now.ToShortDateString();
+            double total = 0;
+
             lock (LogData.date_uploads.SyncRoot)
             {
-                return (double)LogData.date_uploads[DateTime.Now.ToShortDateString()];
+                if (LogData.date_uploads[dateNow] != null)
+                    total = (double)LogData.date_uploads[dateNow];
             }
+
+            return total;
         }
         public double GetTodaysDown()
         {
+            string dateNow = DateTime.Now.ToShortDateString();
+            double total = 0;
+
             lock (LogData.date_downloads.SyncRoot)
             {
-                return (double)LogData.date_downloads[DateTime.Now.ToShortDateString()];
+                if (LogData.date_downloads[dateNow] != null)
+                    total = (double)LogData.date_downloads[dateNow];
             }
+
+            return total;
         }
 
         public double GetAllTimeUp()

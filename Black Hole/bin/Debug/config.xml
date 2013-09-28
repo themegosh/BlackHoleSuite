@@ -2,5 +2,5 @@
 <settings>
   <WindowIsVisible>True</WindowIsVisible>
   <BandwidthMonitorEnabled>True</BandwidthMonitorEnabled>
-  <RunOnStartup>True</RunOnStartup>
+  <RunOnStartup>False</RunOnStartup>
 </settings>
