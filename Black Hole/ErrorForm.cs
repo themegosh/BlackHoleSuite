@@ -9,7 +9,7 @@ using System.Windows.Forms;
 using System.Diagnostics;
 using System.Threading;
 
-namespace Black_Hole
+namespace BlackHoleClient
 {
     public partial class frmError : Form
     {

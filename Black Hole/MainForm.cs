@@ -9,48 +9,58 @@ using System.Windows.Forms;
 using System.Xml;
 using Microsoft.Win32;
 using System.Diagnostics;
+using BlackHoleLib;
+using System.Reflection;
+using System.Configuration.Install;
+using System.ServiceProcess;
 
-namespace Black_Hole
+namespace BlackHoleClient
 {
     public partial class frmMain : Form
     {
-        //class vars
-        private NotifyIcon trayIcon;
-        private ContextMenu trayMenu;
-        private MenuItem trayMenuHiddenToggle;
-        private System.Windows.Forms.Timer tmrformRefresh = new System.Windows.Forms.Timer(); //timer for refreshing labels
-        private BandwidthMonitor bandwidthMonitor; //bandwidth monitor
+        private const string APP_NAME = "Black Hole Suite";
+        private const string SHORT_DATE_FORMAT = "MM/dd/yyyy";
+        private const string LONG_DATE_FORMAT = "dddd, MMMM d, yyyy";
+        private const string SERVICE_NAME = "BlackHoleService";
+        private const string SERVICE_FILE_NAME = "BlackHoleServer.exe";
+        private readonly string APP_DIR = Assembly.GetExecutingAssembly().Location.Remove(Assembly.GetExecutingAssembly().Location.LastIndexOf('\\') + 1);
 
+        //class vars
+        private System.Windows.Forms.Timer tmrRapidRefresh; //timer for refreshing labels
+        private System.Windows.Forms.Timer tmrSlowRefresh; //timer for refreshing heavy things like listviews
+        private BandwidthLogData BWMLogData;
+        private BandwidthMonitor bandwidthMonitor;
+       
         public frmMain()
         {
             InitializeComponent();
 
-            bandwidthMonitor = new BandwidthMonitor(); //create the bandwidth monitor. not enabled until .start()
+            //Timers
+            tmrSlowRefresh = new System.Windows.Forms.Timer();
+            tmrSlowRefresh.Interval = 10000; //10s
+            tmrSlowRefresh.Tick += new EventHandler(SlowRefreshTimer_Tick);
 
-            CreateTrayIcon(); //create the tray icon
-            SetDefaultConfig(); //set initial defaults
-            LoadConfig(); //load config, if it exists
+            tmrRapidRefresh = new System.Windows.Forms.Timer();
+            tmrRapidRefresh.Interval = 500; //0.5s
+            tmrRapidRefresh.Tick += new EventHandler(RapidRefreshTimer_Tick);
 
+            //fix the screen's positioning on resume/reopen
             if (!IsOnScreen(this))
                 this.CenterToScreen();
 
-            tmrformRefresh.Interval = 500; //ms
-            tmrformRefresh.Tick += new EventHandler(RefreshTimer_Tick);
-
-            cmbBWMUnit.SelectedIndex = 0; //set the unit. smart = 0, bytes, kb, mb, gb
-            cmbUsagePeriod.SelectedIndex = 0; //set the usage period. today = 0, month, all, custom
-
-            dtpFirstTime.CustomFormat = "MM/dd/yyyy"; //format the custom time options, usage period
-            dtpSecondTime.CustomFormat = "MM/dd/yyyy"; //format the custom time options usage period
+            //begin processing
+            tmrRapidRefresh.Start(); //do this here to prevent null exeptions of unset stuff
+            tmrSlowRefresh.Start();
 
         }
 
         //this is basically OnClose()
         protected override void Dispose(bool disposing)
         {
-            SaveConfig(); //save xml config
+            if (bandwidthMonitor != null)
+                bandwidthMonitor.Quit();
 
-            bandwidthMonitor.Exit(); //pause/end threads, save totals
+            SaveConfig(); //save xml config
 
             if (disposing && (components != null))
             {
@@ -59,19 +69,64 @@ namespace Black_Hole
             base.Dispose(disposing);
         }
 
-        private void MainForm_Load(object sender, EventArgs e)
+        #region Config
+
+        private void LoadConfig()
         {
-            tmrformRefresh.Start(); //do this here to prevent null exeptions of unset stuff
+            try
+            {
+                string app_dir = Application.ExecutablePath;
+                app_dir = app_dir.Remove(app_dir.LastIndexOf('\\'));
 
-            //AppSpecificBandwidthForm frmAppSpecificBandwidth = new AppSpecificBandwidthForm();
-            //frmAppSpecificBandwidth.Show();
+                XmlDocument xml_doc = new XmlDocument();
+                xml_doc.Load(app_dir + "\\config.xml");
 
-            //enable the logger if we want...
-            //ActivityLogger logger = new ActivityLogger();
-            //logger.Start();
+                Hashtable xml = new Hashtable();
+
+                foreach (XmlNode node in xml_doc.DocumentElement.ChildNodes)
+                    xml[node.Name] = node.InnerText;
+
+                if (xml["BWMMonitorCurrentSpeeds"].ToString().ToLower() == "true")
+                {
+                    chkBWMCurrentSpeeds.Checked = true;
+                }
+
+                if (xml["BWMMonitorOnStart"].ToString().ToLower() == "true")
+                {
+                    chkBWMSettingsRunStartup.Checked = true;
+                }
+            }
+            catch { }
         }
 
-        public bool IsOnScreen(Form form)
+        private void SaveConfig()
+        {
+            string app_dir = Application.ExecutablePath;
+            app_dir = app_dir.Remove(app_dir.LastIndexOf('\\'));
+
+            XmlTextWriter writer = new XmlTextWriter(app_dir + "\\config.xml", Encoding.UTF8);
+            writer.Formatting = Formatting.Indented;
+
+            writer.WriteStartDocument();
+            writer.WriteStartElement("settings");
+
+            writer.WriteElementString("WindowIsVisible", Visible.ToString());
+            writer.WriteElementString("BWMMonitorCurrentSpeeds", chkBWMCurrentSpeeds.Checked.ToString());
+            writer.WriteElementString("BWMMonitorOnStart", chkBWMSettingsRunStartup.Checked.ToString());
+
+            writer.WriteEndElement();
+            writer.WriteEndDocument();
+            writer.Close();
+        }
+
+        private void SetDefaultConfig()
+        {
+
+        }
+
+        #endregion
+
+        private bool IsOnScreen(Form form)
         {
             Screen[] screens = Screen.AllScreens;
             foreach (Screen screen in screens)
@@ -87,49 +142,16 @@ namespace Black_Hole
             return false;
         }
 
-        private void OnExit(object sender, EventArgs e)
+        private void MainForm_Load(object sender, EventArgs e)
         {
-            trayIcon.Visible = false; //fix dirty icon
-            Environment.Exit(0);
-        }
+            SetDefaultConfig(); //set initial defaults
+            LoadConfig(); //load config, if it exists
 
-        private void CreateTrayIcon()
-        {
-            // Create a simple tray menu with only one item.
-            trayMenu = new ContextMenu();
-            trayIcon = new NotifyIcon();
+            InitializeBWMControls();
 
-            trayMenuHiddenToggle = new MenuItem("Hidden", TrayWindowVisibility_Click);
-            trayMenuHiddenToggle.Checked = mnuFileWindowHidden.Checked;
-            trayMenu.MenuItems.Add(trayMenuHiddenToggle);
-            trayMenu.MenuItems.Add("Exit", OnExit);
-
-            //icon properties
-            trayIcon.Text = "Black Hole Suite";
-            trayIcon.Icon = new Icon(Properties.Resources.Blackhole_Icon, 40, 40);
-            trayIcon.ContextMenu = trayMenu;
-            trayIcon.Visible = true;
-            trayIcon.DoubleClick += new EventHandler(trayIcon_DoubleClick);
-        }
-
-        private void SetFormVisibility(bool isVisible)
-        {
-            if (isVisible)
-            {
-                mnuFileWindowHidden.Checked = false;
-                trayMenuHiddenToggle.Checked = false;
-                WindowState = FormWindowState.Normal;
-                ShowInTaskbar = true;
-                Show();
-            }
-            else
-            {
-                mnuFileWindowHidden.Checked = true;
-                trayMenuHiddenToggle.Checked = true;
-                WindowState = FormWindowState.Minimized;
-                ShowInTaskbar = false;
-                Hide();
-            }
+            //update the controls once before the timer refreshes
+            RefreshBwmLight();
+            RefreshBwmHeavy();
         }
 
         private void mnuFileExit_Click(object sender, EventArgs e)
@@ -137,168 +159,203 @@ namespace Black_Hole
             this.Close();
         }
 
-        private void trayIcon_DoubleClick(object sender, EventArgs e)
+        private void SlowRefreshTimer_Tick(Object sender, EventArgs e)
         {
-            SetFormVisibility(true);
+            RefreshBwmHeavy();
+        }
+        
+        private void RapidRefreshTimer_Tick(Object sender, EventArgs e)
+        {
+            RefreshBwmLight();
         }
 
-        private void frmMain_FormClosing(object sender, FormClosingEventArgs e)
+        private void InitializeBWMControls()
         {
-            //SaveConfig();
-            trayIcon.Visible = false; //fix dirty icon
+            //form control selections
+            cmbBWMUnit.SelectedIndex = 0; //set the unit. smart = 0, bytes, kb, mb, gb
+            cmbBWMUsagePeriod.SelectedIndex = 0; //set the usage period. today = 0, month, all, custom
+            lbllblAnd.Visible = false;
+            lbllblBetween.Visible = false;
+            lbllblUsageFor.Visible = false;
+            lblBWMPeriodDate.Visible = false;
+            dtpBWMFirstTime.Visible = false;
+            dtpBWMSecondTime.Visible = false;
+            dtpBWMFirstTime.CustomFormat = SHORT_DATE_FORMAT; //format the custom time options, usage period
+            dtpBWMSecondTime.CustomFormat = SHORT_DATE_FORMAT; //format the custom time options usage period
         }
 
-        private void mnuFileWindowHidden_Click(object sender, EventArgs e)
+        //this is run ever 0.5sec to update labels
+        private void RefreshBwmLight()
         {
-            if (mnuFileWindowHidden.Checked)
-                SetFormVisibility(false);
+            string BWMServiceStatus;
+            ServiceController BWMServiceController = ServiceHelper.GetService(SERVICE_NAME);
+
+            if (BWMServiceController != null)
+            {
+                BWMServiceStatus = BWMServiceController.Status.ToString();
+                BWMServiceController.Close();
+                lblBWMStatusStatus.Text = BWMServiceStatus;
+
+                if (BWMServiceStatus == "Running")
+                {
+                    btnBWMStatusStart.Enabled = false;
+                    btnBWMStatusStop.Enabled = true;
+                }
+                if (BWMServiceStatus == "Stopped")
+                {
+                    btnBWMStatusStart.Enabled = true;
+                    btnBWMStatusStop.Enabled = false;
+                }
+            }
             else
-                SetFormVisibility(true);
-        }
+            {
+                lblBWMStatusStatus.Text = "Not Installed";
+                btnBWMStatusStart.Enabled = true;
+                btnBWMStatusStop.Enabled = false;
+            }
 
-        private void TrayWindowVisibility_Click(object sender, EventArgs e)
-        {
-            if (trayMenuHiddenToggle.Checked)
-                SetFormVisibility(true);
+            if (chkBWMCurrentSpeeds.Checked)
+            {
+                lblDownloadSpeed.Text = BandwidthMonitor.BytesToUnit(bandwidthMonitor.SpeedDownload) + "/s";
+                lblUploadSpeed.Text = BandwidthMonitor.BytesToUnit(bandwidthMonitor.SpeedUpload) + "/s";
+            }
             else
-                SetFormVisibility(false);
+            {
+                lblDownloadSpeed.Text = "";
+                lblUploadSpeed.Text = "";
+            }
         }
 
-        private void RefreshTimer_Tick(Object sender, EventArgs e)
+        //this is ran every 2 sec to update labels/listviews
+        private void RefreshBwmHeavy()
         {
-            RefreshBWMVisuals();
-
-            
-        }
-
-        private void RefreshBWMVisuals()
-        {
-            trayIcon.Text = "Black Hole Suite";
-
-            string today = DateTime.Now.ToShortDateString();
+            string today = DateTime.Now.ToString(SHORT_DATE_FORMAT);
             double down;
             double up;
             double total;
             int year = DateTime.Now.Year;
             int month = DateTime.Now.Month;
 
-            if (cbEnableBandwidthMonitor.Checked)
+            BWMLogData = BandwidthMonitor.getFreshLogData();
+
+            if (BWMLogData != null)
             {
-                if (!bandwidthMonitor.IsRunning)
-                    bandwidthMonitor.Resume();
-
-                lblDownloadSpeed.Text = bandwidthMonitor.BytesToUnit(bandwidthMonitor.CurrentDown, "Smart", true);
-                lblUploadSpeed.Text = bandwidthMonitor.BytesToUnit(bandwidthMonitor.CurrentUp, "Smart", true);
-
-                if (cmbUsagePeriod.SelectedItem.ToString() == "Today")
+                foreach (string date in BWMLogData.date_downloads.Keys)
                 {
-                    lblPeriodDown.Text = bandwidthMonitor.BytesToUnit(bandwidthMonitor.GetTodaysUp(), cmbBWMUnit.Text);
-                    lblPeriodUp.Text = bandwidthMonitor.BytesToUnit(bandwidthMonitor.GetTodaysDown(), cmbBWMUnit.Text);
-                    lblPeriodTotal.Text = bandwidthMonitor.BytesToUnit(bandwidthMonitor.GetTodaysUp() + bandwidthMonitor.GetTodaysDown(), cmbBWMUnit.Text);
-                    lblActivePeriod.Text = DateTime.Now.ToString("dddd, MMMM d, yyyy");
+                    lblPeriodDown.Text = BandwidthMonitor.BytesToUnit((double)BWMLogData.date_downloads[date], cmbBWMUnit.Text);
+                    lblPeriodUp.Text = BandwidthMonitor.BytesToUnit((double)BWMLogData.date_uploads[date], cmbBWMUnit.Text);
+                    lblPeriodTotal.Text = BandwidthMonitor.BytesToUnit((double)BWMLogData.date_uploads[date] + (double)BWMLogData.date_downloads[date], cmbBWMUnit.Text);
+                    lblBWMPeriodDate.Text = DateTime.Now.ToString(LONG_DATE_FORMAT);
                 }
 
-                if (cmbUsagePeriod.SelectedItem.ToString() == "This Month")
+                //show Today's stats, if selected
+                if (cmbBWMUsagePeriod.SelectedItem.ToString() == "Today")
                 {
-                    bandwidthMonitor.PeriodToUsage(
+                    if (BWMLogData.date_downloads.ContainsKey(today))
+                    {
+                        lblPeriodDown.Text = BandwidthMonitor.BytesToUnit((double)BWMLogData.date_downloads[today], cmbBWMUnit.Text);
+                        lblPeriodUp.Text = BandwidthMonitor.BytesToUnit((double)BWMLogData.date_uploads[today], cmbBWMUnit.Text);
+                        lblPeriodTotal.Text = BandwidthMonitor.BytesToUnit((double)BWMLogData.date_uploads[today] + (double)BWMLogData.date_downloads[today], cmbBWMUnit.Text);
+                        lblBWMPeriodDate.Text = DateTime.Now.ToString(LONG_DATE_FORMAT);
+                    }
+                    else
+                    {
+                        lblPeriodDown.Text = "Waiting...";
+                        lblPeriodUp.Text = "Waiting...";
+                        lblPeriodTotal.Text = "Waiting...";
+                        lblBWMPeriodDate.Text = DateTime.Now.ToString(LONG_DATE_FORMAT);
+                    }
+                }
+
+                if (cmbBWMUsagePeriod.SelectedItem.ToString() == "This Month")
+                {
+                    BandwidthMonitor.PeriodToUsage(
+                        BWMLogData,
                         new DateTime(year, month, 1),
                         new DateTime(year, month, DateTime.DaysInMonth(year, month)),
                         out down,
                         out up,
                         out total);
 
-                    lblPeriodDown.Text = bandwidthMonitor.BytesToUnit(down, "Smart");
-                    lblPeriodUp.Text = bandwidthMonitor.BytesToUnit(up, "Smart");
-                    lblPeriodTotal.Text = bandwidthMonitor.BytesToUnit(total, "Smart");
-                    lblActivePeriod.Text = DateTime.Now.ToString("MMMM, yyyy");
+                    lblPeriodDown.Text = BandwidthMonitor.BytesToUnit(down, "Smart");
+                    lblPeriodUp.Text = BandwidthMonitor.BytesToUnit(up, "Smart");
+                    lblPeriodTotal.Text = BandwidthMonitor.BytesToUnit(total, "Smart");
+                    lblBWMPeriodDate.Text = DateTime.Now.ToString("MMMM, yyyy");
                 }
 
-                if (cmbUsagePeriod.SelectedItem.ToString() == "All Time")
+                if (cmbBWMUsagePeriod.SelectedItem.ToString() == "All Time")
                 {
-                    lblPeriodDown.Text = bandwidthMonitor.BytesToUnit(bandwidthMonitor.GetAllTimeDown(), cmbBWMUnit.Text);
-                    lblPeriodUp.Text = bandwidthMonitor.BytesToUnit(bandwidthMonitor.GetAllTimeUp(), cmbBWMUnit.Text);
-                    lblPeriodTotal.Text = bandwidthMonitor.BytesToUnit(bandwidthMonitor.GetAllTimeUp() + bandwidthMonitor.GetAllTimeDown(), cmbBWMUnit.Text);
-                    lblActivePeriod.Text = "All Time";
+                    lblPeriodDown.Text = BandwidthMonitor.BytesToUnit((double)BWMLogData.counter_downloaded, cmbBWMUnit.Text);
+                    lblPeriodUp.Text = BandwidthMonitor.BytesToUnit((double)BWMLogData.counter_uploaded, cmbBWMUnit.Text);
+                    lblPeriodTotal.Text = BandwidthMonitor.BytesToUnit((double)BWMLogData.counter_uploaded + (double)BWMLogData.counter_downloaded, cmbBWMUnit.Text);
+                    lblBWMPeriodDate.Text = "All Time";
                 }
 
-                if (cmbUsagePeriod.SelectedItem.ToString() == "Custom Period")
+                if (cmbBWMUsagePeriod.SelectedItem.ToString() == "Custom Period")
                 {
-                    dtpFirstTime.Visible = true;
-                    dtpSecondTime.Visible = true;
+                    dtpBWMFirstTime.Visible = true;
+                    dtpBWMSecondTime.Visible = true;
                     lbllblAnd.Visible = true;
                     lbllblBetween.Visible = true;
                     lbllblUsageFor.Visible = false;
-                    lblActivePeriod.Visible = false;
+                    lblBWMPeriodDate.Visible = false;
 
 
-                    bandwidthMonitor.PeriodToUsage(
-                        dtpFirstTime.Value,
-                        dtpSecondTime.Value,
+                    BandwidthMonitor.PeriodToUsage(
+                        BWMLogData,
+                        dtpBWMFirstTime.Value,
+                        dtpBWMSecondTime.Value,
                         out down,
                         out up,
                         out total);
 
-                    lblPeriodDown.Text = bandwidthMonitor.BytesToUnit(down, "Smart");
-                    lblPeriodUp.Text = bandwidthMonitor.BytesToUnit(up, "Smart");
-                    lblPeriodTotal.Text = bandwidthMonitor.BytesToUnit(total, "Smart");
-                    lblActivePeriod.Text = DateTime.Now.ToString("MMMM, yyyy");
+                    lblPeriodDown.Text = BandwidthMonitor.BytesToUnit(down, "Smart");
+                    lblPeriodUp.Text = BandwidthMonitor.BytesToUnit(up, "Smart");
+                    lblPeriodTotal.Text = BandwidthMonitor.BytesToUnit(total, "Smart");
+                    lblBWMPeriodDate.Text = DateTime.Now.ToString("MMMM, yyyy");
                 }
                 else
                 {
-                    dtpFirstTime.Visible = false;
-                    dtpSecondTime.Visible = false;
+                    dtpBWMFirstTime.Visible = false;
+                    dtpBWMSecondTime.Visible = false;
                     lbllblAnd.Visible = false;
                     lbllblBetween.Visible = false;
                     lbllblUsageFor.Visible = true;
-                    lblActivePeriod.Visible = true;
+                    lblBWMPeriodDate.Visible = true;
                 }
 
-                trayIcon.Text += "\r\nDown: " + bandwidthMonitor.BytesToUnit(bandwidthMonitor.CurrentDown, "Smart", true);
-                trayIcon.Text += "\r\nUp: " + bandwidthMonitor.BytesToUnit(bandwidthMonitor.CurrentUp, "Smart", true);
-
-                PopulateTable();
+                PopulateTable(BWMLogData);
             }
-
-            if (bandwidthMonitor.IsRunning)
-                lblBandwidthStatus.Text = "Running";
-            else
-                lblBandwidthStatus.Text = "Stopped";
         }
 
-        private void PopulateTable()
+        private void PopulateTable(BandwidthLogData BWMLogData)
         {
             ListViewItem itemToAdd;
             ListViewItem[] tempItems;
 
-            lock (bandwidthMonitor.LogData.date_uploads.SyncRoot)
+            foreach (string period in BWMLogData.date_uploads.Keys)
             {
-                lock (bandwidthMonitor.LogData.date_downloads.SyncRoot)
+                tempItems = lstvDaytoDay.Items.Find(period, false);
+
+                if (tempItems.Length != 0)
                 {
-                    foreach (string period in bandwidthMonitor.LogData.date_uploads.Keys)
-                    {
-                        tempItems = lstvDaytoDay.Items.Find(period, false);
+                    itemToAdd = tempItems[0];
+                    itemToAdd.Name = period;
+                    itemToAdd.SubItems[0].Text = period;
+                    itemToAdd.SubItems[1].Text = BandwidthMonitor.BytesToUnit((double)BWMLogData.date_downloads[period], cmbBWMUnit.Text);
+                    itemToAdd.SubItems[2].Text = BandwidthMonitor.BytesToUnit((double)BWMLogData.date_uploads[period], cmbBWMUnit.Text);
+                    itemToAdd.SubItems[3].Text = BandwidthMonitor.BytesToUnit((double)BWMLogData.date_uploads[period] + (double)BWMLogData.date_downloads[period], cmbBWMUnit.Text);
+                }
+                else
+                {
+                    itemToAdd = new ListViewItem();
+                    itemToAdd.Name = period;
+                    itemToAdd.Text = period;
+                    itemToAdd.SubItems.Add(BandwidthMonitor.BytesToUnit((double)BWMLogData.date_downloads[period], cmbBWMUnit.Text));
+                    itemToAdd.SubItems.Add(BandwidthMonitor.BytesToUnit((double)BWMLogData.date_uploads[period], cmbBWMUnit.Text));
+                    itemToAdd.SubItems.Add(BandwidthMonitor.BytesToUnit((double)BWMLogData.date_uploads[period] + (double)BWMLogData.date_downloads[period], cmbBWMUnit.Text));
 
-                        if (tempItems.Length != 0)
-                        {
-                            itemToAdd = tempItems[0];
-                            itemToAdd.Name = period;
-                            itemToAdd.SubItems[0].Text = period;
-                            itemToAdd.SubItems[1].Text = bandwidthMonitor.BytesToUnit((double)bandwidthMonitor.LogData.date_downloads[period], cmbBWMUnit.Text);
-                            itemToAdd.SubItems[2].Text = bandwidthMonitor.BytesToUnit((double)bandwidthMonitor.LogData.date_uploads[period], cmbBWMUnit.Text);
-                            itemToAdd.SubItems[3].Text = bandwidthMonitor.BytesToUnit((double)bandwidthMonitor.LogData.date_uploads[period] + (double)bandwidthMonitor.LogData.date_downloads[period], cmbBWMUnit.Text);
-                        }
-                        else
-                        {
-                            itemToAdd = new ListViewItem();
-                            itemToAdd.Name = period;
-                            itemToAdd.Text = period;
-                            itemToAdd.SubItems.Add(bandwidthMonitor.BytesToUnit((double)bandwidthMonitor.LogData.date_downloads[period], cmbBWMUnit.Text));
-                            itemToAdd.SubItems.Add(bandwidthMonitor.BytesToUnit((double)bandwidthMonitor.LogData.date_uploads[period], cmbBWMUnit.Text));
-                            itemToAdd.SubItems.Add(bandwidthMonitor.BytesToUnit((double)bandwidthMonitor.LogData.date_uploads[period] + (double)bandwidthMonitor.LogData.date_downloads[period], cmbBWMUnit.Text));
-
-                            lstvDaytoDay.Items.Add(itemToAdd);
-                        }
-                    }
+                    lstvDaytoDay.Items.Add(itemToAdd);
                 }
             }
 
@@ -363,137 +420,11 @@ namespace Black_Hole
             */
         }
 
-        private void mnuAbout_Click(object sender, EventArgs e)
-        {
-            (new frmAbout()).ShowDialog();
-        }
-
-        #region Config
-
-        private void LoadConfig()
-        {
-            try
-            {
-                string app_dir = Application.ExecutablePath;
-                app_dir = app_dir.Remove(app_dir.LastIndexOf('\\'));
-
-                XmlDocument xml_doc = new XmlDocument();
-                xml_doc.Load(app_dir + "\\config.xml");
-
-                Hashtable xml = new Hashtable();
-
-                foreach (XmlNode node in xml_doc.DocumentElement.ChildNodes)
-                    xml[node.Name] = node.InnerText;
-
-                if (xml["BandwidthMonitorEnabled"].ToString().ToLower() == "true")
-                {
-                    cbEnableBandwidthMonitor.Checked = true;
-                    panelBandwidthMonitor.Enabled = true;
-                    bandwidthMonitor.Resume();
-                }
-                else
-                {
-                    cbEnableBandwidthMonitor.Checked = false;
-                    panelBandwidthMonitor.Enabled = false;
-                    bandwidthMonitor.Pause();
-                }
-
-                cbRunOnStartup.Checked = bool.Parse(xml["RunOnStartup"].ToString());
-                SetRunOnStartup();
-
-                if (xml["WindowIsVisible"].ToString().ToLower() == "false")
-                {
-                    //CenterToScreen();
-                    mnuFileWindowHidden.Checked = true;
-                    trayMenuHiddenToggle.Checked = true;
-                    ShowInTaskbar = false;
-                    WindowState = FormWindowState.Minimized;
-                    this.Hide();
-                }
-                else
-                {
-                    this.Show();
-                    CenterToScreen();
-                    mnuFileWindowHidden.Checked = false;
-                    trayMenuHiddenToggle.Checked = false;
-                    //MessageBox.Show("Showing Form...");
-                }
-            }
-            catch
-            {
-            }
-        }
-
-        private void SaveConfig()
-        {
-            string app_dir = Application.ExecutablePath;
-            app_dir = app_dir.Remove(app_dir.LastIndexOf('\\'));
-
-            XmlTextWriter writer = new XmlTextWriter(app_dir + "\\config.xml", Encoding.UTF8);
-            writer.Formatting = Formatting.Indented;
-
-            writer.WriteStartDocument();
-            writer.WriteStartElement("settings");
-
-            writer.WriteElementString("WindowIsVisible", Visible.ToString());
-            writer.WriteElementString("BandwidthMonitorEnabled", cbEnableBandwidthMonitor.Checked.ToString());
-            writer.WriteElementString("RunOnStartup", cbRunOnStartup.Checked.ToString());
-            SetRunOnStartup();
-
-            writer.WriteEndElement();
-            writer.WriteEndDocument();
-            writer.Close();
-        } 
-
-        private void SetDefaultConfig()
-        {
-            mnuFileWindowHidden.Checked = false;
-            trayMenuHiddenToggle.Checked = false;
-            cbRunOnStartup.Checked = false;
-
-            //BWM
-            cbEnableBandwidthMonitor.Checked = false;
-            panelBandwidthMonitor.Enabled = false;
-        }
-
-        private void SetRunOnStartup()
-        {
-            RegistryKey rk = Registry.CurrentUser.OpenSubKey("SOFTWARE\\Microsoft\\Windows\\CurrentVersion\\Run", true);
-
-            if (cbRunOnStartup.Checked)
-                rk.SetValue("Black Hole", "\""+Application.ExecutablePath.ToString()+"\"");
-            else
-                rk.DeleteValue("Black Hole", false);
-        }
-
-        #endregion
-
-        #region Bandwidth Monitor
-
-        private void cbEnableBandwidthMonitor_CheckedChanged(object sender, EventArgs e)
-        {
-            if (cbEnableBandwidthMonitor.Checked)
-            {
-                panelBandwidthMonitor.Enabled = true;
-                bandwidthMonitor.Resume();
-            }
-            else
-            {
-                panelBandwidthMonitor.Enabled = false;
-                bandwidthMonitor.Pause();
-            }
-        }
-
-        #endregion
-
-        private void cbRunOnStartup_CheckedChanged(object sender, EventArgs e)
-        {
-            SetRunOnStartup();
-        }
+        
 
         private void btnClearSelectedDay_Click(object sender, EventArgs e)
         {
-            if (lstvDaytoDay.FocusedItem == null)
+            /*if (lstvDaytoDay.FocusedItem == null)
             {
                 MessageBox.Show("You have not selected a date to remove.\r\n\r\nSelect one from the \"Day to Day Bandwidth Usage Window\".", "Error!", MessageBoxButtons.OK, MessageBoxIcon.Exclamation);
             }
@@ -511,12 +442,12 @@ namespace Black_Hole
                     //MessageBox.Show("Data records for  " + DateTime.Parse(lstvDaytoDay.Items[lstvDaytoDay.FocusedItem.Index].SubItems[0].Text).ToString("dddd, MMMM d, yyyy") + "  has been removed.");
                 }
                 
-            }
+            }*/
         }
 
         private void btnClearAll_Click(object sender, EventArgs e)
         {
-            DialogResult confirmBox = MessageBox.Show("Are you sure you want to clear ALL Data usage history from the beginning of time? This cannot be undone.", "Confirm to Clear", MessageBoxButtons.YesNo, MessageBoxIcon.Question);
+            /*DialogResult confirmBox = MessageBox.Show("Are you sure you want to clear ALL Data usage history from the beginning of time? This cannot be undone.", "Confirm to Clear", MessageBoxButtons.YesNo, MessageBoxIcon.Question);
 
             if (confirmBox == DialogResult.Yes)
             {
@@ -525,7 +456,97 @@ namespace Black_Hole
                 bandwidthMonitor.LogData.counter_downloaded = 0;
                 bandwidthMonitor.LogData.counter_uploaded = 0;
                 lstvDaytoDay.Items.Clear();
+            }*/
+        }
+
+        private void btnAboutVisitDMDev_Click(object sender, EventArgs e)
+        {
+            System.Diagnostics.Process.Start("www.dmdev.ca");
+        }
+
+        private void btnBWMStatusStart_Click(object sender, EventArgs e)
+        {
+            ServiceController BWMServiceController = ServiceHelper.GetService(SERVICE_NAME);
+
+            if (BWMServiceController != null)
+            {
+                BWMServiceController.Start();
+            }
+            else
+            {
+                BWMServiceController = ServiceHelper.InstallService(APP_DIR, SERVICE_FILE_NAME, SERVICE_NAME);
+
+                if (!chkBWMSettingsRunStartup.Checked)
+                    ServiceHelper.ChangeStartMode(BWMServiceController, ServiceStartMode.Manual);
+
+                BWMServiceController.Start();
+            }
+            BWMServiceController.Close();
+        }
+
+        
+        private void btnBWMStatusStop_Click(object sender, EventArgs e)
+        {
+            ServiceController BWMServiceController = ServiceHelper.GetService(SERVICE_NAME);
+
+            if (BWMServiceController != null)
+            {
+                if (BWMServiceController.CanStop)
+                    BWMServiceController.Stop();
+            }
+            BWMServiceController.Close();
+        }
+
+        private void chkBWMSettingsRunStartup_CheckedChanged(object sender, EventArgs e)
+        {
+            ServiceController BWMServiceController = ServiceHelper.GetService(SERVICE_NAME);
+
+            //set run on startup
+            if (chkBWMSettingsRunStartup.Checked == true)
+            {
+                if (BWMServiceController == null)
+                {
+                    BWMServiceController = ServiceHelper.InstallService(APP_DIR, SERVICE_FILE_NAME, SERVICE_NAME);
+                    ServiceHelper.ChangeStartMode(BWMServiceController, ServiceStartMode.Automatic);
+                }
+                else
+                {
+                    ServiceHelper.ChangeStartMode(BWMServiceController, ServiceStartMode.Automatic);
+                    
+                }
+            }
+            else
+            {
+                if (BWMServiceController != null)
+                {
+                    ServiceHelper.ChangeStartMode(BWMServiceController, ServiceStartMode.Manual);
+                    //ServiceHelper.UninstallService(APP_DIR, SERVICE_FILE_NAME, SERVICE_NAME);
+                }
+            }
+            BWMServiceController.Close();
+        }
+
+        private void chkBWMCurrentSpeeds_CheckedChanged(object sender, EventArgs e)
+        {
+            if (chkBWMCurrentSpeeds.Checked)
+            {
+                if (bandwidthMonitor == null)
+                {
+                    bandwidthMonitor = new BandwidthMonitor();
+                    bandwidthMonitor.StartSpeedMonitoring();
+                }
+                else
+                    bandwidthMonitor.ResumeSpeedMonitoring();
+            }
+            else
+            {
+                if (bandwidthMonitor != null)
+                {
+                    bandwidthMonitor.PauseSpeedMonitoring();
+                }
             }
         }
+
+        
     }
 }

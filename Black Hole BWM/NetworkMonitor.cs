@@ -1,12 +1,12 @@
 ﻿using System;
-using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Collections;
 using System.Diagnostics;
 
-namespace Black_Hole
+namespace BlackHoleLib
 {
+
     // The NetworkMonitor class monitors network speed for each network adapter on the computer,
     // using classes for Performance counter in .NET library.
     public class NetworkMonitor

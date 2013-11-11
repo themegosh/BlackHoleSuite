@@ -4,7 +4,7 @@ using System.Linq;
 using System.Text;
 using System.Diagnostics;
 
-namespace Black_Hole
+namespace BlackHoleClient
 {
     public class ProcessPerformanceCounter
     {

@@ -1,6 +1,6 @@
 ﻿<?xml version="1.0" encoding="utf-8"?>
 <settings>
   <WindowIsVisible>True</WindowIsVisible>
-  <BandwidthMonitorEnabled>True</BandwidthMonitorEnabled>
-  <RunOnStartup>False</RunOnStartup>
+  <BWMMonitorCurrentSpeeds>True</BWMMonitorCurrentSpeeds>
+  <BWMMonitorOnStart>True</BWMMonitorOnStart>
 </settings>

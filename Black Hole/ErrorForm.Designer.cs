@@ -1,4 +1,4 @@
-﻿namespace Black_Hole
+﻿namespace BlackHoleClient
 {
     partial class frmError
     {

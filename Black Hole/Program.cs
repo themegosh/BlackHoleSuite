@@ -4,7 +4,7 @@ using System.Linq;
 using System.Windows.Forms;
 using System.Diagnostics;
 
-namespace Black_Hole
+namespace BlackHoleClient
 {
     static class Program
     {
@@ -17,7 +17,7 @@ namespace Black_Hole
             //try
             //{
                 Application.SetCompatibleTextRenderingDefault(false);
-
+            /*
                 Process[] RunningProcesses = Process.GetProcessesByName("Black Hole");
                 if (RunningProcesses.Length == 1)
                 {
@@ -29,17 +29,17 @@ namespace Black_Hole
                     if (RunningProcesses[0].StartTime > RunningProcesses[1].StartTime)
                         RunningProcesses[1].Kill();
                     else
-                        RunningProcesses[0].Kill();
+                        RunningProcesses[0].Kill();*/
 
                     Application.EnableVisualStyles();
                     Application.Run(new frmMain());
-                }
+                /*}
                 else
-                    MessageBox.Show("Black Hole is already running!", "!");
+                    MessageBox.Show("Black Hole is already running!", "!");*/
             //}
 			//catch (Exception ex)
 			//{
-			//	(new frmError(ex)).ShowDialog();
+				//(new frmError(ex)).ShowDialog();
 			//}
 
         }

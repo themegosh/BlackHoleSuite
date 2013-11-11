@@ -101,3 +101,15 @@ C:\Users\Doug\Documents\GitHub\BlackHoleSuite\Black Hole\obj\x86\Debug\GenerateR
 C:\Users\Doug\Documents\GitHub\BlackHoleSuite\Black Hole\obj\x86\Debug\GenerateResource.write.1.tlog
 C:\Users\Doug\Documents\GitHub\BlackHoleSuite\Black Hole\obj\x86\Debug\Black Hole.exe
 C:\Users\Doug\Documents\GitHub\BlackHoleSuite\Black Hole\obj\x86\Debug\Black Hole.pdb
+E:\GitHub\BlackHoleSuite\Black Hole\bin\Debug\Black Hole.exe.config
+E:\GitHub\BlackHoleSuite\Black Hole\bin\Debug\Black Hole.exe
+E:\GitHub\BlackHoleSuite\Black Hole\bin\Debug\Black Hole.pdb
+E:\GitHub\BlackHoleSuite\Black Hole\obj\x86\Debug\ResolveAssemblyReference.cache
+E:\GitHub\BlackHoleSuite\Black Hole\obj\x86\Debug\Black_Hole.AppSpecificBandwidthForm.resources
+E:\GitHub\BlackHoleSuite\Black Hole\obj\x86\Debug\Black_Hole.frmError.resources
+E:\GitHub\BlackHoleSuite\Black Hole\obj\x86\Debug\Black_Hole.Properties.Resources.resources
+E:\GitHub\BlackHoleSuite\Black Hole\obj\x86\Debug\Black_Hole.frmMain.resources
+E:\GitHub\BlackHoleSuite\Black Hole\obj\x86\Debug\GenerateResource.read.1.tlog
+E:\GitHub\BlackHoleSuite\Black Hole\obj\x86\Debug\GenerateResource.write.1.tlog
+E:\GitHub\BlackHoleSuite\Black Hole\obj\x86\Debug\Black Hole.exe
+E:\GitHub\BlackHoleSuite\Black Hole\obj\x86\Debug\Black Hole.pdb

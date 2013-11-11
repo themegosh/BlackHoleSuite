@@ -8,10 +8,11 @@
     <ProjectGuid>{F5CE85C8-26CA-465F-9241-F23B62484A99}</ProjectGuid>
     <OutputType>WinExe</OutputType>
     <AppDesignerFolder>Properties</AppDesignerFolder>
-    <RootNamespace>Black_Hole</RootNamespace>
-    <AssemblyName>Black Hole</AssemblyName>
+    <RootNamespace>BlackHoleClient</RootNamespace>
+    <AssemblyName>BlackHoleClient</AssemblyName>
     <TargetFrameworkVersion>v4.0</TargetFrameworkVersion>
-    <TargetFrameworkProfile>Client</TargetFrameworkProfile>
+    <TargetFrameworkProfile>
+    </TargetFrameworkProfile>
     <FileAlignment>512</FileAlignment>
     <PublishUrl>publish\</PublishUrl>
     <Install>true</Install>
@@ -50,7 +51,7 @@
     <WarningLevel>4</WarningLevel>
   </PropertyGroup>
   <PropertyGroup>
-    <StartupObject>Black_Hole.Program</StartupObject>
+    <StartupObject>BlackHoleClient.Program</StartupObject>
   </PropertyGroup>
   <PropertyGroup />
   <PropertyGroup>
@@ -68,7 +69,9 @@
   </PropertyGroup>
   <ItemGroup>
     <Reference Include="System" />
+    <Reference Include="System.Configuration.Install" />
     <Reference Include="System.Core" />
+    <Reference Include="System.ServiceProcess" />
     <Reference Include="System.Xml.Linq" />
     <Reference Include="System.Data.DataSetExtensions" />
     <Reference Include="Microsoft.CSharp" />
@@ -79,24 +82,14 @@
     <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
-    <Compile Include="AboutForm.cs">
-      <SubType>Form</SubType>
-    </Compile>
-    <Compile Include="AboutForm.Designer.cs">
-      <DependentUpon>AboutForm.cs</DependentUpon>
-    </Compile>
     <Compile Include="AppSpecificBandwidthForm.cs">
       <SubType>Form</SubType>
     </Compile>
     <Compile Include="AppSpecificBandwidthForm.Designer.cs">
       <DependentUpon>AppSpecificBandwidthForm.cs</DependentUpon>
     </Compile>
-    <Compile Include="BandwidthMonitor\BandwidthLog.cs" />
-    <Compile Include="BandwidthMonitor\BandwidthMonitor.cs" />
     <Compile Include="PerAppBandwidthMonitor\ProcessPerformanceCounter.cs" />
     <Compile Include="PerAppBandwidthMonitor\NetworkTraffic.cs" />
-    <Compile Include="BandwidthMonitor\NetworkAdapter.cs" />
-    <Compile Include="BandwidthMonitor\NetworkMonitor.cs" />
     <Compile Include="ErrorForm.cs">
       <SubType>Form</SubType>
     </Compile>
@@ -104,7 +97,6 @@
       <DependentUpon>ErrorForm.cs</DependentUpon>
     </Compile>
     <Compile Include="PerAppBandwidthMonitor\TrafficProcesses.cs" />
-    <Compile Include="ServiceInstaller.cs" />
     <Compile Include="MainForm.cs">
       <SubType>Form</SubType>
     </Compile>
@@ -113,9 +105,6 @@
     </Compile>
     <Compile Include="Program.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
-    <EmbeddedResource Include="AboutForm.resx">
-      <DependentUpon>AboutForm.cs</DependentUpon>
-    </EmbeddedResource>
     <EmbeddedResource Include="AppSpecificBandwidthForm.resx">
       <DependentUpon>AppSpecificBandwidthForm.cs</DependentUpon>
     </EmbeddedResource>
@@ -174,6 +163,12 @@
       <ProductName>Windows Installer 3.1</ProductName>
       <Install>true</Install>
     </BootstrapperPackage>
+  </ItemGroup>
+  <ItemGroup>
+    <ProjectReference Include="..\Black Hole BWM\BlackHoleLib.csproj">
+      <Project>{0D0ADE8A-208C-4C42-83E7-FEEFCD620349}</Project>
+      <Name>BlackHoleLib</Name>
+    </ProjectReference>
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
   <!-- To modify your build process, add your task inside one of the targets below and uncomment it. 

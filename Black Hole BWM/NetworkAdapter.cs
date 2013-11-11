@@ -2,21 +2,14 @@
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
-using System.Collections;
 using System.Diagnostics;
 
-namespace Black_Hole
+namespace BlackHoleLib
 {
     // Represents a network adapter installed on the machine.
     // Properties of this class can be used to obtain current network speed.
     public class NetworkAdapter
     {
-        // Instances of this class are supposed to be created only in an NetworkMonitor.
-        internal NetworkAdapter(string name)
-        {
-            this.name = name;
-        }
-
         private long dlSpeed, ulSpeed;
         private long dlValue, ulValue;
         private long dlValueOld, ulValueOld;
@@ -24,6 +17,12 @@ namespace Black_Hole
         internal string name;
         internal PerformanceCounter dlCounter, ulCounter;
         internal bool Enabled;
+
+        // Instances of this class are supposed to be created only in a NetworkMonitor.
+        internal NetworkAdapter(string name)
+        {
+            this.name = name;
+        }
 
         internal void init()
         {

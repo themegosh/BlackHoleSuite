@@ -8,7 +8,7 @@ using System.Text;
 using System.Windows.Forms;
 using System.Diagnostics;
 
-namespace Black_Hole
+namespace BlackHoleClient
 {
     public partial class AppSpecificBandwidthForm : Form
     {
