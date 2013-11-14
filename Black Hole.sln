@@ -1,11 +1,11 @@
 ﻿
 Microsoft Visual Studio Solution File, Format Version 11.00
 # Visual Studio 2010
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "BlackHoleClient", "Black Hole\BlackHoleClient.csproj", "{F5CE85C8-26CA-465F-9241-F23B62484A99}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "BlackHoleClient", "BlackHoleClient\BlackHoleClient.csproj", "{F5CE85C8-26CA-465F-9241-F23B62484A99}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "BlackHoleServer", "Black Hole Service\BlackHoleServer.csproj", "{6BBD0733-6A92-49C3-9AB1-2C8134C3F65E}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "BlackHoleServer", "BlackHoleServer\BlackHoleServer.csproj", "{6BBD0733-6A92-49C3-9AB1-2C8134C3F65E}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "BlackHoleLib", "Black Hole BWM\BlackHoleLib.csproj", "{0D0ADE8A-208C-4C42-83E7-FEEFCD620349}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "BlackHoleLib", "BlackHoleLib\BlackHoleLib.csproj", "{0D0ADE8A-208C-4C42-83E7-FEEFCD620349}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
