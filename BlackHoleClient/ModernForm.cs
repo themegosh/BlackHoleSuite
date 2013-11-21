@@ -67,6 +67,8 @@ namespace BlackHoleClient
             tcSettings.SelectedIndex = 0;
             cboSettingsBWMUnit.SelectedIndex = 0;
             cboBWMUsagePeriod.SelectedIndex = 0;
+            cboSettingsGeneralColor.DataSource = Enum.GetValues(typeof(MetroFramework.MetroColorStyle));
+            cboSettingsGeneralColor.SelectedItem = (MetroFramework.MetroColorStyle)styleManager.Style;
 
             //load settings from config
             togSettingsBWMDaily.Checked = BlackHoleSuite.IsBWMDailyUsage;
@@ -448,12 +450,17 @@ namespace BlackHoleClient
             total = up + down;
         }
 
-        private void btnSettingsBWMUninstallService_Click_1(object sender, EventArgs e)
+        private void btnSettingsBWMUninstallService_Click(object sender, EventArgs e)
         {
             Task.Factory.StartNew(new Action(BWMService.UninstallService));
             btnSettingsBWMUninstallService.Enabled = false;
             togSettingsBWMDaily.Checked = false;
             togSettingsBWMOnStart.Checked = false;
+        }
+
+        private void cboSettingsGeneralColor_SelectionChangeCommitted(object sender, EventArgs e)
+        {
+            styleManager.Style = (MetroFramework.MetroColorStyle)cboSettingsGeneralColor.SelectedValue;
         }
     }
 }
