@@ -6,7 +6,7 @@ using System.Xml;
 
 namespace BlackHoleLib
 {
-    public static class BlackHole
+    public static class BlackHoleSuite
     {
         private static bool isBWMAutoStart;
         private static bool isBWMSpeed;
@@ -83,20 +83,23 @@ namespace BlackHoleLib
 
         public static void SaveConfig()
         {
+            try
+            {
+                XmlTextWriter writer = new XmlTextWriter(APP_DIR + "\\config.xml", Encoding.UTF8);
+                writer.Formatting = Formatting.Indented;
 
-            XmlTextWriter writer = new XmlTextWriter(APP_DIR + "\\config.xml", Encoding.UTF8);
-            writer.Formatting = Formatting.Indented;
+                writer.WriteStartDocument();
+                writer.WriteStartElement("settings");
 
-            writer.WriteStartDocument();
-            writer.WriteStartElement("settings");
+                writer.WriteElementString("isBWMSpeed", isBWMSpeed.ToString());
+                writer.WriteElementString("isBWMAutoStart", isBWMAutoStart.ToString());
+                writer.WriteElementString("isBWMDailyUsage", isBWMDailyUsage.ToString());
 
-            writer.WriteElementString("isBWMSpeed", isBWMSpeed.ToString());
-            writer.WriteElementString("isBWMAutoStart", isBWMAutoStart.ToString());
-            writer.WriteElementString("isBWMDailyUsage", isBWMDailyUsage.ToString());
-
-            writer.WriteEndElement();
-            writer.WriteEndDocument();
-            writer.Close();
+                writer.WriteEndElement();
+                writer.WriteEndDocument();
+                writer.Close();
+            }
+            catch { }
         }
     }
 }

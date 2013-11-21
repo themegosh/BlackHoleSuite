@@ -8,6 +8,8 @@ namespace BlackHoleClient
 {
     static class Program
     {
+        
+
         /// <summary>
         /// The main entry point for the application.
         /// </summary>
@@ -17,42 +19,24 @@ namespace BlackHoleClient
             Application.SetCompatibleTextRenderingDefault(false);
             Application.EnableVisualStyles();
 
-            BlackHole.LoadConfig();
+            BlackHoleSuite.LoadConfig();
 
-            Application.Run(new frmModern());
-
-            BlackHole.SaveConfig();
-
-            //try
-            //{
-                
-            /*
-                Process[] RunningProcesses = Process.GetProcessesByName("Black Hole");
-                if (RunningProcesses.Length == 1)
+            //if debugging, allow vs exception handling
+            if (System.Diagnostics.Debugger.IsAttached)
+                Application.Run(new frmModern());
+            else
+            {
+                try //not debug mode, show error window instead
                 {
-                    Application.EnableVisualStyles();
-                    Application.Run(new frmMain());
+                    Application.Run(new frmModern());
                 }
-                else if (RunningProcesses.Length == 2)
+                catch (Exception ex)
                 {
-                    if (RunningProcesses[0].StartTime > RunningProcesses[1].StartTime)
-                        RunningProcesses[1].Kill();
-                    else
-                        RunningProcesses[0].Kill();*/
+                    (new frmError(ex)).ShowDialog(); //this type of error message is temporary
+                }
+            }
 
-                    
-                    //Application.Run(new frmMain());
-                    //Application.Run(new frmModern());
-
-                /*}
-                else
-                    MessageBox.Show("Black Hole is already running!", "!");*/
-            //}
-			//catch (Exception ex)
-			//{
-				//(new frmError(ex)).ShowDialog();
-			//}
-
+            BlackHoleSuite.SaveConfig();
         }
     }
 }

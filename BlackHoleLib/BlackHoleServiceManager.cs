@@ -31,10 +31,7 @@ namespace BlackHoleLib
         {
             if (IsInstalled)
             {
-                if (BandwidthMontiorService.CanStop)
-                    BandwidthMontiorService.Stop();
-
-                ManagedInstallerClass.InstallHelper(new string[] { "/u", SERVICE_FILE_NAME});
+                ManagedInstallerClass.InstallHelper(new string[] { "/u", "/LogFile=", SERVICE_FILE_NAME });
 
                 BandwidthMontiorService = GetService();
             }
@@ -44,7 +41,7 @@ namespace BlackHoleLib
         {
             if (!IsInstalled)
             {
-                ManagedInstallerClass.InstallHelper(new string[] { SERVICE_FILE_NAME });
+                ManagedInstallerClass.InstallHelper(new string[] { "/LogFile=", SERVICE_FILE_NAME });
 
                 BandwidthMontiorService = GetService();
             }
@@ -64,9 +61,11 @@ namespace BlackHoleLib
 
         public void Stop()
         {
-            if (IsInstalled)
+            if (IsInstalled == true)
             {
-                BandwidthMontiorService.Stop();
+                if (BandwidthMontiorService.Status == ServiceControllerStatus.Running && BandwidthMontiorService.CanStop)
+                    BandwidthMontiorService.Stop();
+
                 BandwidthMontiorService.Refresh();
             }
         }
@@ -91,14 +90,9 @@ namespace BlackHoleLib
 
         public string GetStatus()
         {
-            string status;
+            BandwidthMontiorService.Refresh();
 
-            if (IsInstalled)
-                status = BandwidthMontiorService.Status.ToString();
-            else
-                status = "Not Installed";
-
-            return status;
+            return IsInstalled ? BandwidthMontiorService.Status.ToString() : "Not Installed";
         }
 
         public bool IsInstalled

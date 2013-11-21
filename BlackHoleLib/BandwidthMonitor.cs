@@ -1,5 +1,5 @@
 ﻿using System;
-using System.Collections.Generic;
+using System.Collections.Concurrent;
 using System.Linq;
 using System.Text;
 using System.Threading;
@@ -7,27 +7,35 @@ using System.Xml.Serialization;
 using System.Xml;
 using System.IO;
 using System.Reflection;
+using System.Data.SQLite;
 
 namespace BlackHoleLib
 {
     public class BandwidthMonitor
     {
-
-        private const int REFRESH_BANDWIDTH_INTERVAL = 1000; // 1 sec
-        private const int SAVE_FILE_INTERVAL = 20000; // 20 sec
+        private const int DEFAULT_BWM_REFRESH_INTERVAL = 950;
+        private const int SAVE_DB_INTERVAL = 15000; // 15 sec
         private const string BWM_FILE_NAME = "BandwidthMonitorRecords.xml";
-        private readonly string exePath = System.Reflection.Assembly.GetExecutingAssembly().Location;
+        private const string DATE_SHORT_FORMAT = "MM/dd/yyyy";
+        private const string TABLE_NAME = "daily_bandwidth";
+        private readonly string APP_DIR = System.Reflection.Assembly.GetExecutingAssembly().Location.Remove(System.Reflection.Assembly.GetExecutingAssembly().Location.LastIndexOf('\\') + 1);
 
         private Thread bgWorkerBandwidthMonitor;
         private Thread bgWorkerSaveData;
         private Thread bgWorkerSpeedMonitor;
         private NetworkMonitor networkMonitor;
-        private BandwidthLogData logData;
+        private ConcurrentDictionary<string, Day> bandwidthData;
         private bool shouldQuitThreads;
         private bool isBWMRunning;
         private bool isSpeedMonitoringRunning;
         private double speedUpload;
         private double speedDownload;
+        private int refreshBWMInterval;
+
+        public int RefreshBWMInterval
+        {
+            get { return refreshBWMInterval; }
+        }
 
         public double SpeedUpload
         {
@@ -38,17 +46,17 @@ namespace BlackHoleLib
         {
             get { return speedDownload; }
         }
-        
+
         public BandwidthMonitor()
         {
+            refreshBWMInterval = DEFAULT_BWM_REFRESH_INTERVAL;
             shouldQuitThreads = false;
-            
-            //nothing happens until we StartMonitoring/Logging
         }
 
         public void StartBandwidthLogging()
         {
             isBWMRunning = true;
+            bandwidthData = new ConcurrentDictionary<string, Day>();
 
             LoadData();
 
@@ -98,80 +106,24 @@ namespace BlackHoleLib
                 isSpeedMonitoringRunning = false;
         }
 
-        public static BandwidthLogData getFreshLogData()
+        public static ConcurrentDictionary<string, Day> getFreshBandwidthData()
         {
-            BandwidthLogData freshLog = new BandwidthLogData();
+            ConcurrentDictionary<string, Day> daysData = new ConcurrentDictionary<string, Day>();
 
-            string app_dir = System.Reflection.Assembly.GetExecutingAssembly().Location;
-            app_dir = app_dir.Remove(app_dir.LastIndexOf('\\') + 1);
+            SQLiteConnection conn = bandwidthDB.OpenDB();
+            SQLiteCommand cmd = conn.CreateCommand();
 
-            try
+            cmd.CommandText = "SELECT day, up, down FROM " + TABLE_NAME + ";";
+            SQLiteDataReader reader = cmd.ExecuteReader();
+
+            while (reader.Read())
             {
-                XmlSerializer s = new XmlSerializer(typeof(BandwidthLogData));
-                TextReader r = new StreamReader(app_dir + BWM_FILE_NAME);
-                freshLog = (BandwidthLogData)s.Deserialize(r);
-                r.Close();
-            }
-            catch { }
-
-            return freshLog;
-        }
-
-        public static string BytesToUnit(double value, string unit = "Smart")
-        {
-            double div = 1;
-
-            if (unit == "Smart")
-            {
-                if (value < 1024)
-                    unit = " B";
-                else if (value < 1024 * 1024)
-                    unit = "KB";
-                else if (value < 1024 * 1024 * 1024)
-                    unit = "MB";
-                else
-                    unit = "GB";
+                daysData.TryAdd(reader.GetString(0), new Day(reader.GetDouble(1), reader.GetDouble(2)));
             }
 
-            if (unit == " B")
-                div = 1;
-            else if (unit == "KB")
-                div = 1024;
-            else if (unit == "MB")
-                div = 1024 * 1024;
-            else if (unit == "GB")
-                div = 1024 * 1024 * 1024;
+            conn.Close();
 
-
-            String string_value = (value / div).ToString("0.00");
-
-            return string_value.Replace(',', '.') + " " + unit;
-        }
-
-
-        public static void PeriodToUsage(BandwidthLogData tmpData, DateTime firstPeriod, DateTime secondPeriod, out double down, out double up, out double total)
-        {
-            down = 0;
-            up = 0;
-            total = 0;
-
-            if (firstPeriod.Date > secondPeriod.Date) //firstdate should be smaller. If not, swap them so it is
-            {
-                DateTime tempDate = firstPeriod;
-
-                firstPeriod = secondPeriod;
-                secondPeriod = tempDate;
-            }
-
-            foreach (string day in tmpData.date_uploads.Keys) //through the days in logdata
-            {
-                if (DateTime.Parse(day).Date <= secondPeriod.Date && DateTime.Parse(day).Date >= firstPeriod.Date)
-                {
-                    up += (double)tmpData.date_uploads[day];
-                    down += (double)tmpData.date_downloads[day];
-                }
-            }
-            total = up + down;
+            return daysData;
         }
 
         private void bgWorkerSpeedMonitor_DoWork()
@@ -180,36 +132,32 @@ namespace BlackHoleLib
             {
                 //dont do anything if paused
                 if (!isSpeedMonitoringRunning)
-                    Thread.Sleep(REFRESH_BANDWIDTH_INTERVAL);
+                    Thread.Sleep(refreshBWMInterval);
                 else
                 {
                     if (networkMonitor == null)
                         networkMonitor = new NetworkMonitor(); //start the network monitor.
+
+                    foreach (NetworkAdapter adapter in networkMonitor.Adapters)
+                    {
+                        adapter.refresh();
+                    }
 
                     speedDownload = 0.0;
                     speedUpload = 0.0;
 
                     foreach (NetworkAdapter adapter in networkMonitor.Adapters)
                     {
-                        if (adapter.Enabled)
-                            adapter.refresh();
+                        speedDownload = adapter.DownloadSpeed(refreshBWMInterval);
+                        speedUpload = adapter.UploadSpeed(refreshBWMInterval);
+
+                        if (speedDownload < 0)
+                            speedDownload = 0;
+
+                        if (speedUpload < 0)
+                            speedUpload = 0;
                     }
-
-                    foreach (NetworkAdapter adapter in networkMonitor.Adapters)
-                    {
-                        if (adapter.Enabled)
-                        {
-                            speedDownload += adapter.DownloadSpeed(REFRESH_BANDWIDTH_INTERVAL);
-                            speedUpload += adapter.UploadSpeed(REFRESH_BANDWIDTH_INTERVAL);
-
-                            if (speedDownload < 0)
-                                speedDownload = 0;
-
-                            if (speedUpload < 0)
-                                speedUpload = 0;
-                        }
-                    }
-                    Thread.Sleep(REFRESH_BANDWIDTH_INTERVAL);
+                    Thread.Sleep(refreshBWMInterval);
                 }
             }
         }
@@ -218,58 +166,47 @@ namespace BlackHoleLib
         {
             while (!shouldQuitThreads)
             {
-                if (networkMonitor == null)
-                    networkMonitor = new NetworkMonitor(); //start the network monitor.
+                SaveData();
 
-                speedDownload = 0.0;
-                speedUpload = 0.0;
-
-                foreach (NetworkAdapter adapter in networkMonitor.Adapters)
-                {
-                    if (adapter.Enabled)
-                        adapter.refresh();
-                }
-
-                foreach (NetworkAdapter adapter in networkMonitor.Adapters)
-                {
-                    if (adapter.Enabled)
-                    {
-                        speedDownload += adapter.DownloadSpeed(REFRESH_BANDWIDTH_INTERVAL);
-                        speedUpload += adapter.UploadSpeed(REFRESH_BANDWIDTH_INTERVAL);
-
-                        if (speedDownload < 0)
-                            speedDownload = 0;
-
-                        if (speedUpload < 0)
-                            speedUpload = 0;
-                    }
-                }
-
-                UpdateData(speedUpload / (1024 / REFRESH_BANDWIDTH_INTERVAL), speedDownload / (1024 / REFRESH_BANDWIDTH_INTERVAL));
-
-                Thread.Sleep(REFRESH_BANDWIDTH_INTERVAL);
+                Thread.Sleep(refreshBWMInterval);
             }
         }
 
-        private void UpdateData(double up, double down)
+        private void SaveData()
         {
-            lock (logData.date_uploads.SyncRoot)
+            string curDate = DateTime.Now.ToString(DATE_SHORT_FORMAT);
+
+            if (networkMonitor == null)
+                networkMonitor = new NetworkMonitor(); //start the network monitor.
+
+            foreach (NetworkAdapter adapter in networkMonitor.Adapters)
             {
-                lock (logData.date_downloads.SyncRoot)
-                {
-                    string today = DateTime.Now.ToString("MM/dd/yyyy");
+                adapter.refresh();
+            }
 
-                    if (!logData.date_downloads.Contains(today))
-                    {
-                        logData.date_downloads.Add(today, 0.0);
-                        logData.date_uploads.Add(today, 0.0);
-                    }
+            speedDownload = 0.0;
+            speedUpload = 0.0;
 
-                    logData.date_uploads[today] = (double)logData.date_uploads[today] + up;
-                    logData.date_downloads[today] = (double)logData.date_downloads[today] + down;
-                    logData.counter_uploaded += up;
-                    logData.counter_downloaded += down;
-                }
+            foreach (NetworkAdapter adapter in networkMonitor.Adapters)
+            {
+                speedDownload = adapter.DownloadSpeed(refreshBWMInterval);
+                speedUpload = adapter.UploadSpeed(refreshBWMInterval);
+
+                if (speedDownload < 0)
+                    speedDownload = 0;
+
+                if (speedUpload < 0)
+                    speedUpload = 0;
+            }
+
+            if (!bandwidthData.ContainsKey(curDate))
+            {
+                bandwidthData.TryAdd(curDate, new Day(speedUpload / (1024 / refreshBWMInterval), speedDownload / (1024 / refreshBWMInterval)));
+            }
+            else
+            {
+                bandwidthData[curDate].totalUp += speedUpload / (1024 / refreshBWMInterval);
+                bandwidthData[curDate].totalDown += speedDownload / (1024 / refreshBWMInterval);
             }
         }
 
@@ -277,45 +214,52 @@ namespace BlackHoleLib
         {
             while (!shouldQuitThreads)
             {
-                SaveData();
-                Thread.Sleep(SAVE_FILE_INTERVAL);
+                SQLiteConnection conn = bandwidthDB.OpenDB();
+                SQLiteCommand cmd = conn.CreateCommand();
+
+                foreach (string aDay in bandwidthData.Keys)
+                {
+                    cmd.CommandText = 
+                        "INSERT OR REPLACE INTO " + TABLE_NAME + " (day, up, down) " +
+                        "VALUES ( COALESCE((SELECT day FROM " + TABLE_NAME + " WHERE day = '" + aDay + "'), '" + aDay + "' )," +
+                        bandwidthData[aDay].totalUp + "," +
+                        bandwidthData[aDay].totalDown + ");";
+
+                    cmd.ExecuteNonQuery();
+                }
+
+                conn.Close();
+
+                Thread.Sleep(SAVE_DB_INTERVAL);
             }
-        }
-
-        //this needs to be made thread safe.
-        private void SaveData()
-        {
-            string app_dir = exePath;
-            app_dir = app_dir.Remove(app_dir.LastIndexOf('\\') + 1);
-
-            XmlSerializer s = new XmlSerializer(typeof(BandwidthLogData));
-            TextWriter w = new StreamWriter(app_dir + BWM_FILE_NAME);
-            s.Serialize(w, logData);
-            w.Close();
         }
 
         private void LoadData()
         {
-            string app_dir = exePath;
-            app_dir = app_dir.Remove(app_dir.LastIndexOf('\\') + 1);
+            SQLiteConnection conn = bandwidthDB.OpenDB();
+            SQLiteCommand cmd = conn.CreateCommand();
 
-            if (logData == null)
-                logData = new BandwidthLogData();
+            cmd.CommandText = "SELECT day, up, down FROM " + TABLE_NAME + ";";
+            SQLiteDataReader reader = cmd.ExecuteReader();
 
-            try
+            while (reader.Read())
             {
-                XmlSerializer s = new XmlSerializer(typeof(BandwidthLogData));
-                TextReader r = new StreamReader(app_dir + BWM_FILE_NAME);
-                logData = (BandwidthLogData)s.Deserialize(r);
-                r.Close();
-            }
-            catch
-            {
-                logData = new BandwidthLogData();
+                bandwidthData.TryAdd(reader.GetString(0), new Day(reader.GetDouble(1), reader.GetDouble(2)));
             }
 
+            conn.Close();
         }
 
-        
+        private void CreateDB()
+        {
+            SQLiteConnection conn = bandwidthDB.OpenDB();
+            SQLiteCommand cmd = conn.CreateCommand();
+
+            cmd.CommandText = "CREATE TABLE " + TABLE_NAME + "(day TEXT PRIMARY KEY DESC, up INTEGER, down INTEGER)";
+            cmd.ExecuteNonQuery();
+
+            conn.Close();
+        }
+
     }
 }

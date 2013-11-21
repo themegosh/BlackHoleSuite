@@ -8,6 +8,7 @@ namespace BlackHoleLib
 {
     // Represents a network adapter installed on the machine.
     // Properties of this class can be used to obtain current network speed.
+    [DebuggerDisplay("dlSpeed = {dlSpeed} ulSpeed = {ulSpeed}")]
     public class NetworkAdapter
     {
         private long dlSpeed, ulSpeed;
@@ -16,7 +17,6 @@ namespace BlackHoleLib
 
         internal string name;
         internal PerformanceCounter dlCounter, ulCounter;
-        internal bool Enabled;
 
         // Instances of this class are supposed to be created only in a NetworkMonitor.
         internal NetworkAdapter(string name)
@@ -28,23 +28,14 @@ namespace BlackHoleLib
         {
             this.dlValueOld = this.dlCounter.NextSample().RawValue;
             this.ulValueOld = this.ulCounter.NextSample().RawValue;
-            this.Enabled = true;
         }
 
         // Obtain new sample from performance counters, and refresh the values saved in dlSpeed, ulSpeed, etc.
         // This method is supposed to be called only in NetworkMonitor, one time every second.
         internal void refresh()
         {
-            try //fix a crash
-            {
-                this.dlValue = this.dlCounter.NextSample().RawValue;
-                this.ulValue = this.ulCounter.NextSample().RawValue;
-            }
-            catch
-            {
-                this.dlValue = 0;
-                this.ulValue = 0;
-            }
+            this.dlValue = this.dlCounter.NextSample().RawValue;
+            this.ulValue = this.ulCounter.NextSample().RawValue;
 
             // Calculates download and upload speed.
             this.dlSpeed = this.dlValue - this.dlValueOld;
@@ -69,7 +60,8 @@ namespace BlackHoleLib
         // Current download speed in bytes per second.
         public long DownloadSpeed(int Interval)
         {
-            return this.dlSpeed * 1000 / Interval;
+            //return this.dlSpeed * 1000 / Interval;
+            return this.dlSpeed;
         }
         // Current upload speed in bytes per second.
         public long UploadSpeed(int Interval)

@@ -30,66 +30,79 @@
         {
             System.ComponentModel.ComponentResourceManager resources = new System.ComponentModel.ComponentResourceManager(typeof(frmError));
             this.txtError = new System.Windows.Forms.TextBox();
-            this.btnCopyToClipboard = new System.Windows.Forms.Button();
-            this.btnExit = new System.Windows.Forms.Button();
-            this.btnRestart = new System.Windows.Forms.Button();
+            this.btnClose = new MetroFramework.Controls.MetroButton();
+            this.btnRestar = new MetroFramework.Controls.MetroButton();
+            this.btnCopyToClip = new MetroFramework.Controls.MetroButton();
             this.SuspendLayout();
             // 
             // txtError
             // 
-            this.txtError.Location = new System.Drawing.Point(13, 13);
+            this.txtError.Anchor = ((System.Windows.Forms.AnchorStyles)((((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Bottom) 
+            | System.Windows.Forms.AnchorStyles.Left) 
+            | System.Windows.Forms.AnchorStyles.Right)));
+            this.txtError.Location = new System.Drawing.Point(23, 63);
             this.txtError.Multiline = true;
             this.txtError.Name = "txtError";
             this.txtError.ReadOnly = true;
             this.txtError.ScrollBars = System.Windows.Forms.ScrollBars.Vertical;
-            this.txtError.Size = new System.Drawing.Size(595, 329);
+            this.txtError.Size = new System.Drawing.Size(399, 183);
             this.txtError.TabIndex = 0;
             // 
-            // btnCopyToClipboard
+            // btnClose
             // 
-            this.btnCopyToClipboard.Location = new System.Drawing.Point(24, 357);
-            this.btnCopyToClipboard.Name = "btnCopyToClipboard";
-            this.btnCopyToClipboard.Size = new System.Drawing.Size(101, 23);
-            this.btnCopyToClipboard.TabIndex = 1;
-            this.btnCopyToClipboard.Text = "Copy to Clipboard";
-            this.btnCopyToClipboard.UseVisualStyleBackColor = true;
-            this.btnCopyToClipboard.Click += new System.EventHandler(this.btnCopyToClipboard_Click);
+            this.btnClose.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Bottom | System.Windows.Forms.AnchorStyles.Right)));
+            this.btnClose.Highlight = false;
+            this.btnClose.Location = new System.Drawing.Point(346, 252);
+            this.btnClose.Name = "btnClose";
+            this.btnClose.Size = new System.Drawing.Size(75, 23);
+            this.btnClose.Style = MetroFramework.MetroColorStyle.Blue;
+            this.btnClose.StyleManager = null;
+            this.btnClose.TabIndex = 4;
+            this.btnClose.Text = "Close";
+            this.btnClose.Theme = MetroFramework.MetroThemeStyle.Light;
+            this.btnClose.Click += new System.EventHandler(this.btnClose_Click);
             // 
-            // btnExit
+            // btnRestar
             // 
-            this.btnExit.Location = new System.Drawing.Point(532, 357);
-            this.btnExit.Name = "btnExit";
-            this.btnExit.Size = new System.Drawing.Size(75, 23);
-            this.btnExit.TabIndex = 2;
-            this.btnExit.Text = "Exit";
-            this.btnExit.UseVisualStyleBackColor = true;
-            this.btnExit.Click += new System.EventHandler(this.btnExit_Click);
+            this.btnRestar.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Bottom | System.Windows.Forms.AnchorStyles.Right)));
+            this.btnRestar.Highlight = false;
+            this.btnRestar.Location = new System.Drawing.Point(265, 252);
+            this.btnRestar.Name = "btnRestar";
+            this.btnRestar.Size = new System.Drawing.Size(75, 23);
+            this.btnRestar.Style = MetroFramework.MetroColorStyle.Blue;
+            this.btnRestar.StyleManager = null;
+            this.btnRestar.TabIndex = 5;
+            this.btnRestar.Text = "Restart";
+            this.btnRestar.Theme = MetroFramework.MetroThemeStyle.Light;
+            this.btnRestar.Click += new System.EventHandler(this.btnRestar_Click);
             // 
-            // btnRestart
+            // btnCopyToClip
             // 
-            this.btnRestart.Location = new System.Drawing.Point(451, 357);
-            this.btnRestart.Name = "btnRestart";
-            this.btnRestart.Size = new System.Drawing.Size(75, 23);
-            this.btnRestart.TabIndex = 3;
-            this.btnRestart.Text = "Restart";
-            this.btnRestart.UseVisualStyleBackColor = true;
-            this.btnRestart.Click += new System.EventHandler(this.btnRestart_Click);
+            this.btnCopyToClip.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Bottom | System.Windows.Forms.AnchorStyles.Left)));
+            this.btnCopyToClip.Highlight = false;
+            this.btnCopyToClip.Location = new System.Drawing.Point(23, 252);
+            this.btnCopyToClip.Name = "btnCopyToClip";
+            this.btnCopyToClip.Size = new System.Drawing.Size(114, 23);
+            this.btnCopyToClip.Style = MetroFramework.MetroColorStyle.Blue;
+            this.btnCopyToClip.StyleManager = null;
+            this.btnCopyToClip.TabIndex = 6;
+            this.btnCopyToClip.Text = "Copy to Clipboard";
+            this.btnCopyToClip.Theme = MetroFramework.MetroThemeStyle.Light;
+            this.btnCopyToClip.Click += new System.EventHandler(this.btnCopyToClip_Click);
             // 
             // frmError
             // 
             this.AutoScaleDimensions = new System.Drawing.SizeF(6F, 13F);
             this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
-            this.ClientSize = new System.Drawing.Size(620, 392);
-            this.Controls.Add(this.btnRestart);
-            this.Controls.Add(this.btnExit);
-            this.Controls.Add(this.btnCopyToClipboard);
+            this.ClientSize = new System.Drawing.Size(445, 298);
+            this.Controls.Add(this.btnCopyToClip);
+            this.Controls.Add(this.btnRestar);
+            this.Controls.Add(this.btnClose);
             this.Controls.Add(this.txtError);
-            this.FormBorderStyle = System.Windows.Forms.FormBorderStyle.FixedSingle;
             this.Icon = ((System.Drawing.Icon)(resources.GetObject("$this.Icon")));
-            this.MaximizeBox = false;
-            this.MinimizeBox = false;
+            this.Location = new System.Drawing.Point(0, 0);
+            this.MinimumSize = new System.Drawing.Size(324, 146);
             this.Name = "frmError";
-            this.StartPosition = System.Windows.Forms.FormStartPosition.CenterScreen;
             this.Text = "Black Hole - Critical Error!";
             this.Load += new System.EventHandler(this.frmError_Load);
             this.ResumeLayout(false);
@@ -100,8 +113,8 @@
         #endregion
 
         private System.Windows.Forms.TextBox txtError;
-        private System.Windows.Forms.Button btnCopyToClipboard;
-        private System.Windows.Forms.Button btnExit;
-        private System.Windows.Forms.Button btnRestart;
+        private MetroFramework.Controls.MetroButton btnClose;
+        private MetroFramework.Controls.MetroButton btnRestar;
+        private MetroFramework.Controls.MetroButton btnCopyToClip;
     }
 }

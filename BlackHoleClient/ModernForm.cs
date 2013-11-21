@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections;
+using System.Collections.Concurrent;
 using System.ComponentModel;
 using System.Data;
 using System.Drawing;
@@ -23,7 +24,6 @@ namespace BlackHoleClient
 
         private System.Windows.Forms.Timer tmrRapidRefresh; //timer for refreshing labels
         private System.Windows.Forms.Timer tmrSlowRefresh; //timer for refreshing heavy things like listviews
-        private BandwidthLogData BWMLogData;
         private BandwidthMonitor bandwidthMonitor;
         private BlackHoleServiceManager BWMService;
 
@@ -48,10 +48,9 @@ namespace BlackHoleClient
 
         protected override void Dispose(bool disposing)
         {
-            //stop the service if its not supposed to run on startup
-            if (!BlackHole.IsBWMAutoStart)
+            if (!BlackHoleSuite.IsBWMAutoStart)
                 BWMService.Stop();
-            
+
             if (bandwidthMonitor != null)
                 bandwidthMonitor.Quit();
 
@@ -64,23 +63,20 @@ namespace BlackHoleClient
 
         private void InitializeBWMControls()
         {
+            tcMainTabs.SelectedIndex = 0;
+            tcSettings.SelectedIndex = 0;
             cboSettingsBWMUnit.SelectedIndex = 0;
             cboBWMUsagePeriod.SelectedIndex = 0;
 
             //load settings from config
-            togSettingsBWMDaily.Checked = BlackHole.IsBWMDailyUsage;
-            togSettingsBWMOnStart.Checked = BlackHole.IsBWMAutoStart;
-            togSettingsBWMSpeed.Checked = BlackHole.IsBWMSpeed;
+            togSettingsBWMDaily.Checked = BlackHoleSuite.IsBWMDailyUsage;
+            togSettingsBWMOnStart.Checked = BlackHoleSuite.IsBWMAutoStart;
+            togSettingsBWMSpeed.Checked = BlackHoleSuite.IsBWMSpeed;
+            dtpBWMUsageFrom.CustomFormat = SHORT_DATE_FORMAT;
+            dtpBWMUsageTo.CustomFormat = SHORT_DATE_FORMAT;
 
-            
-            /*lbllblAnd.Visible = false;
-            lbllblBetween.Visible = false;
-            lbllblUsageFor.Visible = false;
-            lblBWMUsagePeriod.Visible = false;
-            dtpBWMFirstTime.Visible = false;
-            dtpBWMSecondTime.Visible = false;
-            dtpBWMFirstTime.CustomFormat = SHORT_DATE_FORMAT; //format the custom time options, usage period
-            dtpBWMSecondTime.CustomFormat = SHORT_DATE_FORMAT; //format the custom time options usage period*/
+            if (!BWMService.IsInstalled)
+                btnSettingsBWMUninstallService.Enabled = false;
         }
 
         private void SlowRefreshTimer_Tick(Object sender, EventArgs e)
@@ -97,8 +93,8 @@ namespace BlackHoleClient
         {
             if (togSettingsBWMSpeed.Checked)
             {
-                lblBWMSpeedDown.Text = BandwidthMonitor.BytesToUnit(bandwidthMonitor.SpeedDownload) + "/s";
-                lblBWMSpeedUp.Text = BandwidthMonitor.BytesToUnit(bandwidthMonitor.SpeedUpload) + "/s";
+                lblBWMSpeedDown.Text = BytesToUnit(bandwidthMonitor.SpeedDownload) + "/s";
+                lblBWMSpeedUp.Text = BytesToUnit(bandwidthMonitor.SpeedUpload) + "/s";
             }
             else
             {
@@ -109,33 +105,38 @@ namespace BlackHoleClient
 
         private void RefreshBwmHeavy()
         {
+            //test service uninstall (this is pretty heavy)
+            if (!btnSettingsBWMUninstallService.Enabled)
+                if (BWMService.IsInstalled)
+                    btnSettingsBWMUninstallService.Enabled = true;
+
             string today = DateTime.Now.ToString(SHORT_DATE_FORMAT);
-            double down;
-            double up;
-            double total;
+            double down = 0;
+            double up = 0;
+            double total = 0;
             int year = DateTime.Now.Year;
             int month = DateTime.Now.Month;
 
-            BWMLogData = BandwidthMonitor.getFreshLogData();
+            ConcurrentDictionary<string, BlackHoleLib.Day> daysData = BandwidthMonitor.getFreshBandwidthData();
 
-            if (BWMLogData != null)
+            if (daysData.Count > 0)
             {
-                foreach (string date in BWMLogData.date_downloads.Keys)
+                foreach (string date in daysData.Keys)
                 {
-                    lblBWMUsageDownloaded.Text = BandwidthMonitor.BytesToUnit((double)BWMLogData.date_downloads[date], cboSettingsBWMUnit.Text);
-                    lblBWMUsageUploaded.Text = BandwidthMonitor.BytesToUnit((double)BWMLogData.date_uploads[date], cboSettingsBWMUnit.Text);
-                    lblBWMUsageTotal.Text = BandwidthMonitor.BytesToUnit((double)BWMLogData.date_uploads[date] + (double)BWMLogData.date_downloads[date], cboSettingsBWMUnit.Text);
+                    lblBWMUsageDownloaded.Text = BytesToUnit(daysData[date].totalDown, cboSettingsBWMUnit.Text);
+                    lblBWMUsageUploaded.Text = BytesToUnit(daysData[date].totalUp, cboSettingsBWMUnit.Text);
+                    lblBWMUsageTotal.Text = BytesToUnit(daysData[date].totalDown + daysData[date].totalUp, cboSettingsBWMUnit.Text);
                     lblBWMUsagePeriod.Text = DateTime.Now.ToString(LONG_DATE_FORMAT);
                 }
 
                 //show Today's stats, if selected
                 if (cboBWMUsagePeriod.SelectedItem.ToString() == "Today")
                 {
-                    if (BWMLogData.date_downloads.ContainsKey(today))
+                    if (daysData.ContainsKey(today))
                     {
-                        lblBWMUsageDownloaded.Text = BandwidthMonitor.BytesToUnit((double)BWMLogData.date_downloads[today], cboSettingsBWMUnit.Text);
-                        lblBWMUsageUploaded.Text = BandwidthMonitor.BytesToUnit((double)BWMLogData.date_uploads[today], cboSettingsBWMUnit.Text);
-                        lblBWMUsageTotal.Text = BandwidthMonitor.BytesToUnit((double)BWMLogData.date_uploads[today] + (double)BWMLogData.date_downloads[today], cboSettingsBWMUnit.Text);
+                        lblBWMUsageDownloaded.Text = BytesToUnit(daysData[today].totalDown, cboSettingsBWMUnit.Text);
+                        lblBWMUsageUploaded.Text = BytesToUnit(daysData[today].totalUp, cboSettingsBWMUnit.Text);
+                        lblBWMUsageTotal.Text = BytesToUnit(daysData[today].totalDown + daysData[today].totalUp, cboSettingsBWMUnit.Text);
                         lblBWMUsagePeriod.Text = DateTime.Now.ToString(LONG_DATE_FORMAT);
                     }
                     else
@@ -149,25 +150,33 @@ namespace BlackHoleClient
 
                 if (cboBWMUsagePeriod.SelectedItem.ToString() == "This Month")
                 {
-                    BandwidthMonitor.PeriodToUsage(
-                        BWMLogData,
+                    PeriodToUsage(
+                        daysData,
                         new DateTime(year, month, 1),
                         new DateTime(year, month, DateTime.DaysInMonth(year, month)),
                         out down,
                         out up,
                         out total);
 
-                    lblBWMUsageDownloaded.Text = BandwidthMonitor.BytesToUnit(down);
-                    lblBWMUsageUploaded.Text = BandwidthMonitor.BytesToUnit(up);
-                    lblBWMUsageTotal.Text = BandwidthMonitor.BytesToUnit(total);
+                    lblBWMUsageDownloaded.Text = BytesToUnit(down, cboSettingsBWMUnit.Text);
+                    lblBWMUsageUploaded.Text = BytesToUnit(up, cboSettingsBWMUnit.Text);
+                    lblBWMUsageTotal.Text = BytesToUnit(total, cboSettingsBWMUnit.Text);
                     lblBWMUsagePeriod.Text = DateTime.Now.ToString("MMMM, yyyy");
                 }
 
                 if (cboBWMUsagePeriod.SelectedItem.ToString() == "All Time")
                 {
-                    lblBWMUsageDownloaded.Text = BandwidthMonitor.BytesToUnit((double)BWMLogData.counter_downloaded, cboSettingsBWMUnit.Text);
-                    lblBWMUsageUploaded.Text = BandwidthMonitor.BytesToUnit((double)BWMLogData.counter_uploaded, cboSettingsBWMUnit.Text);
-                    lblBWMUsageTotal.Text = BandwidthMonitor.BytesToUnit((double)BWMLogData.counter_uploaded + (double)BWMLogData.counter_downloaded, cboSettingsBWMUnit.Text);
+
+                    foreach (string day in daysData.Keys)
+                    {
+                        down += daysData[day].totalDown;
+                        up += daysData[day].totalUp;
+                        total += daysData[day].totalDown + daysData[day].totalUp;
+                    }
+
+                    lblBWMUsageDownloaded.Text = BytesToUnit(down, cboSettingsBWMUnit.Text);
+                    lblBWMUsageUploaded.Text = BytesToUnit(up, cboSettingsBWMUnit.Text);
+                    lblBWMUsageTotal.Text = BytesToUnit(total, cboSettingsBWMUnit.Text);
                     lblBWMUsagePeriod.Text = "All Time";
                 }
 
@@ -175,43 +184,41 @@ namespace BlackHoleClient
                 {
                     dtpBWMUsageFrom.Visible = true;
                     dtpBWMUsageTo.Visible = true;
-                    lblBWMUsageFromTitle.Visible = true;
                     lblBWMUsageToTitle.Visible = true;
                     lblBWMUsagePeriod.Visible = false;
 
 
-                    BandwidthMonitor.PeriodToUsage(
-                        BWMLogData,
+                    PeriodToUsage(
+                        daysData,
                         dtpBWMUsageFrom.Value,
                         dtpBWMUsageTo.Value,
                         out down,
                         out up,
                         out total);
 
-                    lblBWMUsageDownloaded.Text = BandwidthMonitor.BytesToUnit(down, "Smart");
-                    lblBWMUsageUploaded.Text = BandwidthMonitor.BytesToUnit(up, "Smart");
-                    lblBWMUsageTotal.Text = BandwidthMonitor.BytesToUnit(total, "Smart");
+                    lblBWMUsageDownloaded.Text = BytesToUnit(down, "Smart");
+                    lblBWMUsageUploaded.Text = BytesToUnit(up, "Smart");
+                    lblBWMUsageTotal.Text = BytesToUnit(total, "Smart");
                     lblBWMUsagePeriod.Text = DateTime.Now.ToString("MMMM, yyyy");
                 }
                 else
                 {
                     dtpBWMUsageFrom.Visible = false;
                     dtpBWMUsageTo.Visible = false;
-                    lblBWMUsageFromTitle.Visible = false;
                     lblBWMUsageToTitle.Visible = false;
                     lblBWMUsagePeriod.Visible = true;
                 }
 
-                PopulateTable(BWMLogData);
+                PopulateTable(daysData);
             }
         }
 
-        private void PopulateTable(BandwidthLogData BWMLogData)
+        private void PopulateTable(ConcurrentDictionary<string, BlackHoleLib.Day> daysData)
         {
             ListViewItem itemToAdd;
             ListViewItem[] tempItems;
 
-            foreach (string period in BWMLogData.date_uploads.Keys)
+            foreach (string period in daysData.Keys)
             {
                 tempItems = lstvBWMUsage.Items.Find(period, false);
 
@@ -220,18 +227,18 @@ namespace BlackHoleClient
                     itemToAdd = tempItems[0];
                     itemToAdd.Name = period;
                     itemToAdd.SubItems[0].Text = period;
-                    itemToAdd.SubItems[1].Text = BandwidthMonitor.BytesToUnit((double)BWMLogData.date_downloads[period], cboSettingsBWMUnit.Text);
-                    itemToAdd.SubItems[2].Text = BandwidthMonitor.BytesToUnit((double)BWMLogData.date_uploads[period], cboSettingsBWMUnit.Text);
-                    itemToAdd.SubItems[3].Text = BandwidthMonitor.BytesToUnit((double)BWMLogData.date_uploads[period] + (double)BWMLogData.date_downloads[period], cboSettingsBWMUnit.Text);
+                    itemToAdd.SubItems[1].Text = BytesToUnit(daysData[period].totalDown, cboSettingsBWMUnit.Text);
+                    itemToAdd.SubItems[2].Text = BytesToUnit(daysData[period].totalUp, cboSettingsBWMUnit.Text);
+                    itemToAdd.SubItems[3].Text = BytesToUnit(daysData[period].totalDown + daysData[period].totalUp, cboSettingsBWMUnit.Text);
                 }
                 else
                 {
                     itemToAdd = new ListViewItem();
                     itemToAdd.Name = period;
                     itemToAdd.Text = period;
-                    itemToAdd.SubItems.Add(BandwidthMonitor.BytesToUnit((double)BWMLogData.date_downloads[period], cboSettingsBWMUnit.Text));
-                    itemToAdd.SubItems.Add(BandwidthMonitor.BytesToUnit((double)BWMLogData.date_uploads[period], cboSettingsBWMUnit.Text));
-                    itemToAdd.SubItems.Add(BandwidthMonitor.BytesToUnit((double)BWMLogData.date_uploads[period] + (double)BWMLogData.date_downloads[period], cboSettingsBWMUnit.Text));
+                    itemToAdd.SubItems.Add(BytesToUnit(daysData[period].totalDown, cboSettingsBWMUnit.Text));
+                    itemToAdd.SubItems.Add(BytesToUnit(daysData[period].totalUp, cboSettingsBWMUnit.Text));
+                    itemToAdd.SubItems.Add(BytesToUnit(daysData[period].totalDown + daysData[period].totalUp, cboSettingsBWMUnit.Text));
 
                     lstvBWMUsage.Items.Add(itemToAdd);
                 }
@@ -317,7 +324,7 @@ namespace BlackHoleClient
 
         private void togSettingsBWMSpeed_CheckedChanged(object sender, EventArgs e)
         {
-            BlackHole.IsBWMSpeed = togSettingsBWMSpeed.Checked;
+            BlackHoleSuite.IsBWMSpeed = togSettingsBWMSpeed.Checked;
 
             if (togSettingsBWMSpeed.Checked)
             {
@@ -341,7 +348,7 @@ namespace BlackHoleClient
 
         private void togSettingsBWMDaily_CheckedChanged(object sender, EventArgs e)
         {
-            BlackHole.IsBWMDailyUsage = togSettingsBWMDaily.Checked;
+            BlackHoleSuite.IsBWMDailyUsage = togSettingsBWMDaily.Checked;
 
             if (togSettingsBWMDaily.Checked)
             {
@@ -362,19 +369,12 @@ namespace BlackHoleClient
 
         private void togSettingsBWMOnStart_CheckedChanged(object sender, EventArgs e)
         {
-            BlackHole.IsBWMAutoStart = togSettingsBWMOnStart.Checked;
+            BlackHoleSuite.IsBWMAutoStart = togSettingsBWMOnStart.Checked;
 
             if (togSettingsBWMOnStart.Checked == true) //run on start
                 BWMService.SetAutomatic();
             else //do not run on start
                 BWMService.SetManual();
-        }
-
-        delegate void derpp();
-
-        private void btnSettingsBWMUninstallService_Click(object sender, EventArgs e)
-        {
-            Task.Factory.StartNew(new Action(BWMService.UninstallService));
         }
 
         private void cboSettingsBWMUnit_SelectionChangeCommitted(object sender, EventArgs e)
@@ -392,6 +392,68 @@ namespace BlackHoleClient
             RefreshBwmHeavy();
         }
 
-        
+        public string BytesToUnit(double value, string unit = "Smart")
+        {
+            double div = 1;
+
+            if (unit == "Smart")
+            {
+                if (value < 1024)
+                    unit = " B";
+                else if (value < 1024 * 1024)
+                    unit = "KB";
+                else if (value < 1024 * 1024 * 1024)
+                    unit = "MB";
+                else
+                    unit = "GB";
+            }
+
+            if (unit == " B")
+                div = 1;
+            else if (unit == "KB")
+                div = 1024;
+            else if (unit == "MB")
+                div = 1024 * 1024;
+            else if (unit == "GB")
+                div = 1024 * 1024 * 1024;
+
+
+            String string_value = (value / div).ToString("0.##");
+
+            return string_value.Replace(',', '.') + " " + unit;
+        }
+
+        public void PeriodToUsage(ConcurrentDictionary<string, BlackHoleLib.Day> tmpData, DateTime firstPeriod, DateTime secondPeriod, out double down, out double up, out double total)
+        {
+            down = 0;
+            up = 0;
+            total = 0;
+
+            if (firstPeriod.Date > secondPeriod.Date) //firstdate should be smaller. If not, swap them so it is
+            {
+                DateTime tempDate = firstPeriod;
+
+                firstPeriod = secondPeriod;
+                secondPeriod = tempDate;
+            }
+
+            foreach (string day in tmpData.Keys) //through the days in logdata
+            {
+                if (DateTime.Parse(day).Date <= secondPeriod.Date && DateTime.Parse(day).Date >= firstPeriod.Date)
+                {
+                    up += tmpData[day].totalUp;
+                    down += tmpData[day].totalDown;
+                }
+            }
+            total = up + down;
+        }
+
+        private void btnSettingsBWMUninstallService_Click_1(object sender, EventArgs e)
+        {
+            Task.Factory.StartNew(new Action(BWMService.UninstallService));
+            btnSettingsBWMUninstallService.Enabled = false;
+            togSettingsBWMDaily.Checked = false;
+            togSettingsBWMOnStart.Checked = false;
+        }
     }
 }

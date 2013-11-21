@@ -8,10 +8,11 @@ using System.Text;
 using System.Windows.Forms;
 using System.Diagnostics;
 using System.Threading;
+using MetroFramework.Forms;
 
 namespace BlackHoleClient
 {
-    public partial class frmError : Form
+    public partial class frmError : MetroForm 
     {
         private Exception ex;
 
@@ -22,25 +23,25 @@ namespace BlackHoleClient
             this.ex = anEx;
         }
 
-        private void btnExit_Click(object sender, EventArgs e)
+        private void frmError_Load(object sender, EventArgs e)
         {
-            Environment.Exit(0);
+            txtError.Text = string.Format("Message: {0}\r\nStack trace:\r\n\r\n{1}", ex.Message, ex.StackTrace);
         }
 
-        private void btnRestart_Click(object sender, EventArgs e)
+        private void btnCopyToClip_Click(object sender, EventArgs e)
+        {
+            Clipboard.SetText(txtError.Text);
+        }
+
+        private void btnRestar_Click(object sender, EventArgs e)
         {
             Process.Start(Application.ExecutablePath);
             Environment.Exit(0);
         }
 
-        private void btnCopyToClipboard_Click(object sender, EventArgs e)
+        private void btnClose_Click(object sender, EventArgs e)
         {
-            Clipboard.SetText(txtError.Text);
-        }
-
-        private void frmError_Load(object sender, EventArgs e)
-        {
-            txtError.Text = string.Format("Message: {0}\r\nStack trace:\r\n\r\n{1}", ex.Message, ex.StackTrace);
+            Environment.Exit(0);
         }
     }
 }
