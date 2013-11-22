@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.ServiceProcess;
 using System.Text;
+using BlackHoleLib;
 
 namespace BlackHoleServer
 {
@@ -22,23 +23,16 @@ namespace BlackHoleServer
                         break;
                     case "install":
                     case "i":
-                        SelfInstaller.InstallMe();
+                        ServiceManager.InstallService();
                         break;
                     case "uninstall":
                     case "u":
-                        SelfInstaller.UninstallMe();
+                        ServiceManager.UninstallService();
                         break;
                 }
             }
             else
                 BlackHoleServer.BlackHoleService.Run(new BlackHoleService());
-
-            /*ServiceBase[] ServicesToRun;
-            ServicesToRun = new ServiceBase[] 
-			{ 
-				new BlackHoleService() 
-			};
-            ServiceBase.Run(ServicesToRun);*/
         }
     }
 }

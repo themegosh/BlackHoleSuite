@@ -3,10 +3,6 @@ using System.Collections.Concurrent;
 using System.Linq;
 using System.Text;
 using System.Threading;
-using System.Xml.Serialization;
-using System.Xml;
-using System.IO;
-using System.Reflection;
 using System.Data.SQLite;
 
 namespace BlackHoleLib
@@ -18,13 +14,12 @@ namespace BlackHoleLib
         private const string BWM_FILE_NAME = "BandwidthMonitorRecords.xml";
         private const string DATE_SHORT_FORMAT = "MM/dd/yyyy";
         private const string TABLE_NAME = "daily_bandwidth";
-        private readonly string APP_DIR = System.Reflection.Assembly.GetExecutingAssembly().Location.Remove(System.Reflection.Assembly.GetExecutingAssembly().Location.LastIndexOf('\\') + 1);
 
         private Thread bgWorkerBandwidthMonitor;
         private Thread bgWorkerSaveData;
         private Thread bgWorkerSpeedMonitor;
         private NetworkMonitor networkMonitor;
-        private ConcurrentDictionary<string, Day> bandwidthData;
+        private ConcurrentDictionary<string, DayLog> bandwidthData;
         private bool shouldQuitThreads;
         private bool isBWMRunning;
         private bool isSpeedMonitoringRunning;
@@ -53,10 +48,16 @@ namespace BlackHoleLib
             shouldQuitThreads = false;
         }
 
+        ~BandwidthMonitor()
+        {
+            if (isBWMRunning)
+                SaveToDB();
+        }
+
         public void StartBandwidthLogging()
         {
             isBWMRunning = true;
-            bandwidthData = new ConcurrentDictionary<string, Day>();
+            bandwidthData = new ConcurrentDictionary<string, DayLog>();
 
             LoadData();
 
@@ -99,29 +100,33 @@ namespace BlackHoleLib
             if (isBWMRunning)
             {
                 isBWMRunning = false;
-                SaveData();
+                RefreshBandwidthStats();
             }
 
             if (isSpeedMonitoringRunning)
                 isSpeedMonitoringRunning = false;
         }
 
-        public static ConcurrentDictionary<string, Day> getFreshBandwidthData()
+        public static ConcurrentDictionary<string, DayLog> getFreshBandwidthData()
         {
-            ConcurrentDictionary<string, Day> daysData = new ConcurrentDictionary<string, Day>();
+            ConcurrentDictionary<string, DayLog> daysData = new ConcurrentDictionary<string, DayLog>();
 
-            SQLiteConnection conn = bandwidthDB.OpenDB();
-            SQLiteCommand cmd = conn.CreateCommand();
-
-            cmd.CommandText = "SELECT day, up, down FROM " + TABLE_NAME + ";";
-            SQLiteDataReader reader = cmd.ExecuteReader();
-
-            while (reader.Read())
+            try
             {
-                daysData.TryAdd(reader.GetString(0), new Day(reader.GetDouble(1), reader.GetDouble(2)));
-            }
+                SQLiteConnection conn = Database.OpenDB();
+                SQLiteCommand cmd = conn.CreateCommand();
 
-            conn.Close();
+                cmd.CommandText = "SELECT day, up, down FROM " + TABLE_NAME + ";";
+                SQLiteDataReader reader = cmd.ExecuteReader();
+
+                while (reader.Read())
+                {
+                    daysData.TryAdd(reader.GetString(0), new DayLog(reader.GetDouble(1), reader.GetDouble(2)));
+                }
+
+                conn.Close();
+            }
+            catch { }
 
             return daysData;
         }
@@ -166,13 +171,13 @@ namespace BlackHoleLib
         {
             while (!shouldQuitThreads)
             {
-                SaveData();
+                RefreshBandwidthStats();
 
                 Thread.Sleep(refreshBWMInterval);
             }
         }
 
-        private void SaveData()
+        private void RefreshBandwidthStats()
         {
             string curDate = DateTime.Now.ToString(DATE_SHORT_FORMAT);
 
@@ -201,7 +206,7 @@ namespace BlackHoleLib
 
             if (!bandwidthData.ContainsKey(curDate))
             {
-                bandwidthData.TryAdd(curDate, new Day(speedUpload / (1024 / refreshBWMInterval), speedDownload / (1024 / refreshBWMInterval)));
+                bandwidthData.TryAdd(curDate, new DayLog(speedUpload / (1024 / refreshBWMInterval), speedDownload / (1024 / refreshBWMInterval)));
             }
             else
             {
@@ -214,51 +219,76 @@ namespace BlackHoleLib
         {
             while (!shouldQuitThreads)
             {
-                SQLiteConnection conn = bandwidthDB.OpenDB();
-                SQLiteCommand cmd = conn.CreateCommand();
-
-                foreach (string aDay in bandwidthData.Keys)
-                {
-                    cmd.CommandText = 
-                        "INSERT OR REPLACE INTO " + TABLE_NAME + " (day, up, down) " +
-                        "VALUES ( COALESCE((SELECT day FROM " + TABLE_NAME + " WHERE day = '" + aDay + "'), '" + aDay + "' )," +
-                        bandwidthData[aDay].totalUp + "," +
-                        bandwidthData[aDay].totalDown + ");";
-
-                    cmd.ExecuteNonQuery();
-                }
-
-                conn.Close();
+                SaveToDB();
 
                 Thread.Sleep(SAVE_DB_INTERVAL);
             }
         }
 
+        private void SaveToDB()
+        {
+            try
+            {
+                SQLiteConnection conn = Database.OpenDB();
+                SQLiteCommand cmd = conn.CreateCommand();
+
+                foreach (string aDay in bandwidthData.Keys)
+                {
+                    cmd.CommandText =
+                        "INSERT OR REPLACE INTO " + TABLE_NAME + " (day, up, down) " +
+                        "VALUES ( COALESCE((SELECT day FROM " + TABLE_NAME + " WHERE day = '" + aDay + "'), '" + aDay + "' )," +
+                        bandwidthData[aDay].totalUp + "," +
+                        bandwidthData[aDay].totalDown + ");";
+
+                    try
+                    {
+                        cmd.ExecuteNonQuery();
+                    }
+                    catch
+                    {
+                        CreateDB();
+                        cmd.ExecuteNonQuery();
+                    }
+                }
+
+                conn.Close();
+            }
+            catch { }
+        }
+
         private void LoadData()
         {
-            SQLiteConnection conn = bandwidthDB.OpenDB();
-            SQLiteCommand cmd = conn.CreateCommand();
-
-            cmd.CommandText = "SELECT day, up, down FROM " + TABLE_NAME + ";";
-            SQLiteDataReader reader = cmd.ExecuteReader();
-
-            while (reader.Read())
+            try
             {
-                bandwidthData.TryAdd(reader.GetString(0), new Day(reader.GetDouble(1), reader.GetDouble(2)));
-            }
+                SQLiteConnection conn = Database.OpenDB();
+                SQLiteCommand cmd = conn.CreateCommand();
 
-            conn.Close();
+                cmd.CommandText = "SELECT day, up, down FROM " + TABLE_NAME + ";";
+                SQLiteDataReader reader = cmd.ExecuteReader();
+
+                while (reader.Read())
+                {
+                    bandwidthData.TryAdd(reader.GetString(0), new DayLog(reader.GetDouble(1), reader.GetDouble(2)));
+                }
+
+                conn.Close();
+            }
+            catch { }
         }
 
         private void CreateDB()
         {
-            SQLiteConnection conn = bandwidthDB.OpenDB();
-            SQLiteCommand cmd = conn.CreateCommand();
+            try
+            {
+                SQLiteConnection conn = Database.OpenDB();
+                SQLiteCommand cmd = conn.CreateCommand();
 
-            cmd.CommandText = "CREATE TABLE " + TABLE_NAME + "(day TEXT PRIMARY KEY DESC, up INTEGER, down INTEGER)";
-            cmd.ExecuteNonQuery();
+                cmd.CommandText = "CREATE TABLE " + TABLE_NAME + "(day TEXT PRIMARY KEY DESC, up INTEGER, down INTEGER)";
+                cmd.ExecuteNonQuery();
 
-            conn.Close();
+                conn.Close();
+            }
+            catch { }
         }
 
     }

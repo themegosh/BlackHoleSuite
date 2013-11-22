@@ -7,12 +7,12 @@ using System.Reflection;
 
 namespace BlackHoleLib
 {
-    public class Day
+    public class DayLog
     {
         public double totalUp;
         public double totalDown;
 
-        public Day( double up, double down)
+        public DayLog( double up, double down)
         {
             totalUp = up;
             totalDown = down;

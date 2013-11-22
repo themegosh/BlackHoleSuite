@@ -3,6 +3,7 @@ using System.Collections;
 using System.Linq;
 using System.Text;
 using System.Xml;
+using MetroFramework.Forms;
 
 namespace BlackHoleLib
 {
@@ -11,6 +12,7 @@ namespace BlackHoleLib
         private static bool isBWMAutoStart;
         private static bool isBWMSpeed;
         private static bool isBWMDailyUsage;
+        private static MetroFramework.MetroColorStyle formColour;
 
         public static bool IsBWMAutoStart
         {
@@ -45,6 +47,17 @@ namespace BlackHoleLib
                 isBWMDailyUsage = value;
             }
         }
+        public static MetroFramework.MetroColorStyle FormColour
+        {
+            get
+            {
+                return formColour;
+            }
+            set
+            {
+                formColour = value;
+            }
+        }
         public static string APP_DIR
         {
             get
@@ -58,6 +71,7 @@ namespace BlackHoleLib
             isBWMSpeed = false;
             isBWMAutoStart = false;
             isBWMDailyUsage = false;
+            formColour = MetroFramework.MetroColorStyle.Blue;
         }
 
         public static void LoadConfig()
@@ -77,6 +91,7 @@ namespace BlackHoleLib
                 bool.TryParse(xml["isBWMSpeed"].ToString().ToLower(), out isBWMSpeed);
                 bool.TryParse(xml["isBWMAutoStart"].ToString().ToLower(), out isBWMAutoStart);
                 bool.TryParse(xml["isBWMDailyUsage"].ToString().ToLower(), out isBWMDailyUsage);
+                Enum.TryParse<MetroFramework.MetroColorStyle>(xml["formColour"].ToString(), out formColour);
             }
             catch { }
         }
@@ -94,6 +109,7 @@ namespace BlackHoleLib
                 writer.WriteElementString("isBWMSpeed", isBWMSpeed.ToString());
                 writer.WriteElementString("isBWMAutoStart", isBWMAutoStart.ToString());
                 writer.WriteElementString("isBWMDailyUsage", isBWMDailyUsage.ToString());
+                writer.WriteElementString("formColour", formColour.ToString());
 
                 writer.WriteEndElement();
                 writer.WriteEndDocument();

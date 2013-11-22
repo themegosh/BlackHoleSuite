@@ -25,13 +25,10 @@ namespace BlackHoleServer
             }
             eventLog.Source = "BlackHoleServiceAlerts";
             eventLog.Log = "Black Hole Service Log";
-
         }
 
         protected override void OnStart(string[] args)
         {
-            eventLog.WriteEntry("BWM OnStart");
-
             try
             {
                 bandwidthMontior = new BandwidthMonitor();
@@ -39,19 +36,19 @@ namespace BlackHoleServer
             }
             catch (Exception ex)
             {
-                eventLog.WriteEntry("BWM Exeption: \n\n " + ex.Message);
+                eventLog.WriteEntry("BWM Exeption: \n\n " + ex.Message, EventLogEntryType.Error);
+                Stop();
             }
         }
 
         protected override void OnStop()
         {
             bandwidthMontior.Quit();
-            eventLog.WriteEntry("BWM OnStop");
         }
 
-        public void recordEvent(string aMessage)
+        public void recordEvent(string aMessage, EventLogEntryType entryType = EventLogEntryType.Information)
         {
-            eventLog.WriteEntry(aMessage);
+            eventLog.WriteEntry(aMessage, entryType);
         }
     }
 }

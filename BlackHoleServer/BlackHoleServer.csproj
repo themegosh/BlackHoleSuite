@@ -11,7 +11,8 @@
     <RootNamespace>BlackHoleServer</RootNamespace>
     <AssemblyName>BlackHoleServer</AssemblyName>
     <TargetFrameworkVersion>v4.0</TargetFrameworkVersion>
-    <TargetFrameworkProfile>Client</TargetFrameworkProfile>
+    <TargetFrameworkProfile>
+    </TargetFrameworkProfile>
     <FileAlignment>512</FileAlignment>
   </PropertyGroup>
   <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Debug|x86' ">
@@ -63,7 +64,6 @@
       <DependentUpon>ProjectInstaller.cs</DependentUpon>
     </Compile>
     <Compile Include="Properties\AssemblyInfo.cs" />
-    <Compile Include="SelfInstaller.cs" />
   </ItemGroup>
   <ItemGroup>
     <EmbeddedResource Include="BlackHoleService.resx">
@@ -78,6 +78,9 @@
       <Project>{0D0ADE8A-208C-4C42-83E7-FEEFCD620349}</Project>
       <Name>BlackHoleLib</Name>
     </ProjectReference>
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="app.config" />
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
   <!-- To modify your build process, add your task inside one of the targets below and uncomment it. 

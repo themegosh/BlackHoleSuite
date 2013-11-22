@@ -84,10 +84,10 @@
     <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
-    <Compile Include="AppSpecificBandwidthForm.cs">
+    <Compile Include="PerAppBandwidthMonitor\AppSpecificBandwidthForm.cs">
       <SubType>Form</SubType>
     </Compile>
-    <Compile Include="AppSpecificBandwidthForm.Designer.cs">
+    <Compile Include="PerAppBandwidthMonitor\AppSpecificBandwidthForm.Designer.cs">
       <DependentUpon>AppSpecificBandwidthForm.cs</DependentUpon>
     </Compile>
     <Compile Include="ModernForm.cs">
@@ -107,7 +107,7 @@
     <Compile Include="PerAppBandwidthMonitor\TrafficProcesses.cs" />
     <Compile Include="Program.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
-    <EmbeddedResource Include="AppSpecificBandwidthForm.resx">
+    <EmbeddedResource Include="PerAppBandwidthMonitor\AppSpecificBandwidthForm.resx">
       <DependentUpon>AppSpecificBandwidthForm.cs</DependentUpon>
     </EmbeddedResource>
     <EmbeddedResource Include="ErrorForm.resx">

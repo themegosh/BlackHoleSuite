@@ -25,13 +25,13 @@ namespace BlackHoleClient
         private System.Windows.Forms.Timer tmrRapidRefresh; //timer for refreshing labels
         private System.Windows.Forms.Timer tmrSlowRefresh; //timer for refreshing heavy things like listviews
         private BandwidthMonitor bandwidthMonitor;
-        private BlackHoleServiceManager BWMService;
+        private ServiceManager BWMService;
 
         public frmModern()
         {
             InitializeComponent();
 
-            BWMService = new BlackHoleServiceManager();
+            BWMService = new ServiceManager();
             InitializeBWMControls();
 
             //Timers
@@ -64,9 +64,9 @@ namespace BlackHoleClient
         private void InitializeBWMControls()
         {
             tcMainTabs.SelectedIndex = 0;
-            tcSettings.SelectedIndex = 0;
             cboSettingsBWMUnit.SelectedIndex = 0;
             cboBWMUsagePeriod.SelectedIndex = 0;
+            styleManager.Style = BlackHoleSuite.FormColour;
             cboSettingsGeneralColor.DataSource = Enum.GetValues(typeof(MetroFramework.MetroColorStyle));
             cboSettingsGeneralColor.SelectedItem = (MetroFramework.MetroColorStyle)styleManager.Style;
 
@@ -95,13 +95,24 @@ namespace BlackHoleClient
         {
             if (togSettingsBWMSpeed.Checked)
             {
+                btnBWMEnableSpeed.Visible = false;
+                lblBWMEnableSpeedTitle.Visible = false;
+                lblBWMSpeedDown.Visible = true;
+                lblBWMSpeedDownTitle.Visible = true;
+                lblBWMSpeedUp.Visible = true;
+                lblBWMSpeedUpTitle.Visible = true;
+
                 lblBWMSpeedDown.Text = BytesToUnit(bandwidthMonitor.SpeedDownload) + "/s";
                 lblBWMSpeedUp.Text = BytesToUnit(bandwidthMonitor.SpeedUpload) + "/s";
             }
             else
             {
-                lblBWMSpeedDown.Text = "";
-                lblBWMSpeedUp.Text = "";
+                btnBWMEnableSpeed.Visible = true;
+                lblBWMEnableSpeedTitle.Visible = true;
+                lblBWMSpeedDown.Visible = false;
+                lblBWMSpeedDownTitle.Visible = false;
+                lblBWMSpeedUp.Visible = false;
+                lblBWMSpeedUpTitle.Visible = false;
             }
         }
 
@@ -119,10 +130,34 @@ namespace BlackHoleClient
             int year = DateTime.Now.Year;
             int month = DateTime.Now.Month;
 
-            ConcurrentDictionary<string, BlackHoleLib.Day> daysData = BandwidthMonitor.getFreshBandwidthData();
+            ConcurrentDictionary<string, BlackHoleLib.DayLog> daysData = BandwidthMonitor.getFreshBandwidthData();
 
-            if (daysData.Count > 0)
+            if (daysData.Count == 0 && BlackHoleSuite.IsBWMDailyUsage == false)
             {
+                lblBWMEnableDailyMonitoringTitle.Visible = true;
+                btnBWMEnableDaily.Visible = true;
+                btnBWMEnableDaily.Enabled = true;
+                lblBWMUsageDownloaded.Visible = false;
+                lblBWMUsageDownloadedTitle.Visible = false;
+                lblBWMUsageUploaded.Visible = false;
+                lblBWMUsageUploadedTitle.Visible = false;
+                lblBWMUsageTotal.Visible = false;
+                lblBWMUsageTotalTitle.Visible = false;
+                lblBWMUsagePeriod.Visible = false;
+            }
+            else
+            {
+                lblBWMEnableDailyMonitoringTitle.Visible = false;
+                btnBWMEnableDaily.Visible = false;
+                btnBWMEnableDaily.Enabled = false;
+                lblBWMUsageDownloaded.Visible = true;
+                lblBWMUsageDownloadedTitle.Visible = true;
+                lblBWMUsageUploaded.Visible = true;
+                lblBWMUsageUploadedTitle.Visible = true;
+                lblBWMUsageTotal.Visible = true;
+                lblBWMUsageTotalTitle.Visible = true;
+                lblBWMUsagePeriod.Visible = true;
+
                 foreach (string date in daysData.Keys)
                 {
                     lblBWMUsageDownloaded.Text = BytesToUnit(daysData[date].totalDown, cboSettingsBWMUnit.Text);
@@ -143,9 +178,9 @@ namespace BlackHoleClient
                     }
                     else
                     {
-                        lblBWMUsageDownloaded.Text = "No Data";
-                        lblBWMUsageUploaded.Text = "No Data";
-                        lblBWMUsageTotal.Text = "No Data";
+                        lblBWMUsageDownloaded.Text = "N/A";
+                        lblBWMUsageUploaded.Text = "N/A";
+                        lblBWMUsageTotal.Text = "N/A";
                         lblBWMUsagePeriod.Text = DateTime.Now.ToString(LONG_DATE_FORMAT);
                     }
                 }
@@ -215,7 +250,7 @@ namespace BlackHoleClient
             }
         }
 
-        private void PopulateTable(ConcurrentDictionary<string, BlackHoleLib.Day> daysData)
+        private void PopulateTable(ConcurrentDictionary<string, BlackHoleLib.DayLog> daysData)
         {
             ListViewItem itemToAdd;
             ListViewItem[] tempItems;
@@ -425,7 +460,7 @@ namespace BlackHoleClient
             return string_value.Replace(',', '.') + " " + unit;
         }
 
-        public void PeriodToUsage(ConcurrentDictionary<string, BlackHoleLib.Day> tmpData, DateTime firstPeriod, DateTime secondPeriod, out double down, out double up, out double total)
+        public void PeriodToUsage(ConcurrentDictionary<string, BlackHoleLib.DayLog> tmpData, DateTime firstPeriod, DateTime secondPeriod, out double down, out double up, out double total)
         {
             down = 0;
             up = 0;
@@ -452,7 +487,8 @@ namespace BlackHoleClient
 
         private void btnSettingsBWMUninstallService_Click(object sender, EventArgs e)
         {
-            Task.Factory.StartNew(new Action(BWMService.UninstallService));
+            Task.Factory.StartNew(new Action(ServiceManager.UninstallService));
+            //todo: check when task is finished and enable button instead of checking on refresh
             btnSettingsBWMUninstallService.Enabled = false;
             togSettingsBWMDaily.Checked = false;
             togSettingsBWMOnStart.Checked = false;
@@ -460,7 +496,22 @@ namespace BlackHoleClient
 
         private void cboSettingsGeneralColor_SelectionChangeCommitted(object sender, EventArgs e)
         {
-            styleManager.Style = (MetroFramework.MetroColorStyle)cboSettingsGeneralColor.SelectedValue;
+            BlackHoleSuite.FormColour = (MetroFramework.MetroColorStyle)cboSettingsGeneralColor.SelectedValue;
+            styleManager.Style = BlackHoleSuite.FormColour;
+        }
+
+        private void btnBWMEnableDaily_Click(object sender, EventArgs e)
+        {
+            togSettingsBWMDaily.Checked = true; //this should enable the daily monitor
+
+            RefreshBwmHeavy();
+        }
+
+        private void btnBWMEnableSpeed_Click(object sender, EventArgs e)
+        {
+            togSettingsBWMSpeed.Checked = true;
+
+            RefreshBwmLight();
         }
     }
 }

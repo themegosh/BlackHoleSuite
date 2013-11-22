@@ -23,6 +23,7 @@
             System.ComponentModel.ComponentResourceManager resources = new System.ComponentModel.ComponentResourceManager(typeof(frmModern));
             this.tcMainTabs = new MetroFramework.Controls.MetroTabControl();
             this.tpBWM = new MetroFramework.Controls.MetroTabPage();
+            this.btnBWMEnableSpeed = new MetroFramework.Controls.MetroButton();
             this.lstvBWMUsage = new System.Windows.Forms.ListView();
             this.date = ((System.Windows.Forms.ColumnHeader)(new System.Windows.Forms.ColumnHeader()));
             this.download = ((System.Windows.Forms.ColumnHeader)(new System.Windows.Forms.ColumnHeader()));
@@ -30,13 +31,16 @@
             this.total = ((System.Windows.Forms.ColumnHeader)(new System.Windows.Forms.ColumnHeader()));
             this.lblBWMSpeedsTitle = new MetroFramework.Controls.MetroLabel();
             this.styleManager = new MetroFramework.Components.MetroStyleManager();
-            this.lblBWMDownTitle = new MetroFramework.Controls.MetroLabel();
+            this.lblBWMSpeedDownTitle = new MetroFramework.Controls.MetroLabel();
             this.lblBWMUsageToTitle = new MetroFramework.Controls.MetroLabel();
+            this.lblBWMEnableSpeedTitle = new MetroFramework.Controls.MetroLabel();
+            this.btnBWMEnableDaily = new MetroFramework.Controls.MetroButton();
+            this.lblBWMEnableDailyMonitoringTitle = new MetroFramework.Controls.MetroLabel();
             this.lblBWMUsageTotal = new MetroFramework.Controls.MetroLabel();
             this.lblBWMPeriodUsageTitle = new MetroFramework.Controls.MetroLabel();
             this.dtpBWMUsageTo = new System.Windows.Forms.DateTimePicker();
             this.dtpBWMUsageFrom = new System.Windows.Forms.DateTimePicker();
-            this.lblBWMUpTitle = new MetroFramework.Controls.MetroLabel();
+            this.lblBWMSpeedUpTitle = new MetroFramework.Controls.MetroLabel();
             this.lblBWMUsageTotalTitle = new MetroFramework.Controls.MetroLabel();
             this.lblBWMSpeedUp = new MetroFramework.Controls.MetroLabel();
             this.lblBWMSpeedDown = new MetroFramework.Controls.MetroLabel();
@@ -48,11 +52,8 @@
             this.lblBWMUsageDownloaded = new MetroFramework.Controls.MetroLabel();
             this.lblBWMUsagePeriod = new MetroFramework.Controls.MetroLabel();
             this.tpSettings = new MetroFramework.Controls.MetroTabPage();
-            this.tcSettings = new MetroFramework.Controls.MetroTabControl();
-            this.tpSettingsGeneral = new MetroFramework.Controls.MetroTabPage();
             this.lblSettingsGeneralColorTitle = new MetroFramework.Controls.MetroLabel();
             this.cboSettingsGeneralColor = new MetroFramework.Controls.MetroComboBox();
-            this.tpSettingsBWM = new MetroFramework.Controls.MetroTabPage();
             this.lblSettingsBWMUnit = new MetroFramework.Controls.MetroLabel();
             this.lblSettingsBWMSpeed = new MetroFramework.Controls.MetroLabel();
             this.lblSettingsBWMDaily = new MetroFramework.Controls.MetroLabel();
@@ -61,20 +62,18 @@
             this.togSettingsBWMOnStart = new MetroFramework.Controls.MetroToggle();
             this.togSettingsBWMSpeed = new MetroFramework.Controls.MetroToggle();
             this.togSettingsBWMDaily = new MetroFramework.Controls.MetroToggle();
-            this.tpAdvanced = new MetroFramework.Controls.MetroTabPage();
             this.btnSettingsBWMUninstallService = new MetroFramework.Controls.MetroButton();
             this.tpAbout = new MetroFramework.Controls.MetroTabPage();
             this.lblAboutBlurb = new MetroFramework.Controls.MetroLabel();
             this.lblAboutDeveloper = new MetroFramework.Controls.MetroLabel();
             this.btnAboutGithub = new MetroFramework.Controls.MetroButton();
             this.btnAboutDeveloperSite = new MetroFramework.Controls.MetroButton();
+            this.lblSettingsBWMTitle = new MetroFramework.Controls.MetroLabel();
+            this.lblSettingsGeneralTitle = new MetroFramework.Controls.MetroLabel();
+            this.lblSettingsAdvancedTitle = new MetroFramework.Controls.MetroLabel();
             this.tcMainTabs.SuspendLayout();
             this.tpBWM.SuspendLayout();
             this.tpSettings.SuspendLayout();
-            this.tcSettings.SuspendLayout();
-            this.tpSettingsGeneral.SuspendLayout();
-            this.tpSettingsBWM.SuspendLayout();
-            this.tpAdvanced.SuspendLayout();
             this.tpAbout.SuspendLayout();
             this.SuspendLayout();
             // 
@@ -102,15 +101,19 @@
             // 
             // tpBWM
             // 
+            this.tpBWM.Controls.Add(this.btnBWMEnableSpeed);
             this.tpBWM.Controls.Add(this.lstvBWMUsage);
             this.tpBWM.Controls.Add(this.lblBWMSpeedsTitle);
-            this.tpBWM.Controls.Add(this.lblBWMDownTitle);
+            this.tpBWM.Controls.Add(this.lblBWMSpeedDownTitle);
             this.tpBWM.Controls.Add(this.lblBWMUsageToTitle);
+            this.tpBWM.Controls.Add(this.lblBWMEnableSpeedTitle);
+            this.tpBWM.Controls.Add(this.btnBWMEnableDaily);
+            this.tpBWM.Controls.Add(this.lblBWMEnableDailyMonitoringTitle);
             this.tpBWM.Controls.Add(this.lblBWMUsageTotal);
             this.tpBWM.Controls.Add(this.lblBWMPeriodUsageTitle);
             this.tpBWM.Controls.Add(this.dtpBWMUsageTo);
             this.tpBWM.Controls.Add(this.dtpBWMUsageFrom);
-            this.tpBWM.Controls.Add(this.lblBWMUpTitle);
+            this.tpBWM.Controls.Add(this.lblBWMSpeedUpTitle);
             this.tpBWM.Controls.Add(this.lblBWMUsageTotalTitle);
             this.tpBWM.Controls.Add(this.lblBWMSpeedUp);
             this.tpBWM.Controls.Add(this.lblBWMSpeedDown);
@@ -138,6 +141,19 @@
             this.tpBWM.VerticalScrollbarBarColor = true;
             this.tpBWM.VerticalScrollbarHighlightOnWheel = false;
             this.tpBWM.VerticalScrollbarSize = 10;
+            // 
+            // btnBWMEnableSpeed
+            // 
+            this.btnBWMEnableSpeed.Highlight = false;
+            this.btnBWMEnableSpeed.Location = new System.Drawing.Point(35, 70);
+            this.btnBWMEnableSpeed.Name = "btnBWMEnableSpeed";
+            this.btnBWMEnableSpeed.Size = new System.Drawing.Size(154, 23);
+            this.btnBWMEnableSpeed.Style = MetroFramework.MetroColorStyle.Blue;
+            this.btnBWMEnableSpeed.StyleManager = null;
+            this.btnBWMEnableSpeed.TabIndex = 27;
+            this.btnBWMEnableSpeed.Text = "Enable Speed Monitoring";
+            this.btnBWMEnableSpeed.Theme = MetroFramework.MetroThemeStyle.Light;
+            this.btnBWMEnableSpeed.Click += new System.EventHandler(this.btnBWMEnableSpeed_Click);
             // 
             // lstvBWMUsage
             // 
@@ -204,23 +220,23 @@
             this.styleManager.Style = MetroFramework.MetroColorStyle.Teal;
             this.styleManager.Theme = MetroFramework.MetroThemeStyle.Light;
             // 
-            // lblBWMDownTitle
+            // lblBWMSpeedDownTitle
             // 
-            this.lblBWMDownTitle.AutoSize = true;
-            this.lblBWMDownTitle.CustomBackground = false;
-            this.lblBWMDownTitle.CustomForeColor = false;
-            this.lblBWMDownTitle.FontSize = MetroFramework.MetroLabelSize.Small;
-            this.lblBWMDownTitle.FontWeight = MetroFramework.MetroLabelWeight.Light;
-            this.lblBWMDownTitle.LabelMode = MetroFramework.Controls.MetroLabelMode.Default;
-            this.lblBWMDownTitle.Location = new System.Drawing.Point(14, 67);
-            this.lblBWMDownTitle.Name = "lblBWMDownTitle";
-            this.lblBWMDownTitle.Size = new System.Drawing.Size(58, 15);
-            this.lblBWMDownTitle.Style = MetroFramework.MetroColorStyle.Teal;
-            this.lblBWMDownTitle.StyleManager = this.styleManager;
-            this.lblBWMDownTitle.TabIndex = 3;
-            this.lblBWMDownTitle.Text = "Download";
-            this.lblBWMDownTitle.Theme = MetroFramework.MetroThemeStyle.Light;
-            this.lblBWMDownTitle.UseStyleColors = false;
+            this.lblBWMSpeedDownTitle.AutoSize = true;
+            this.lblBWMSpeedDownTitle.CustomBackground = false;
+            this.lblBWMSpeedDownTitle.CustomForeColor = false;
+            this.lblBWMSpeedDownTitle.FontSize = MetroFramework.MetroLabelSize.Small;
+            this.lblBWMSpeedDownTitle.FontWeight = MetroFramework.MetroLabelWeight.Light;
+            this.lblBWMSpeedDownTitle.LabelMode = MetroFramework.Controls.MetroLabelMode.Default;
+            this.lblBWMSpeedDownTitle.Location = new System.Drawing.Point(14, 67);
+            this.lblBWMSpeedDownTitle.Name = "lblBWMSpeedDownTitle";
+            this.lblBWMSpeedDownTitle.Size = new System.Drawing.Size(58, 15);
+            this.lblBWMSpeedDownTitle.Style = MetroFramework.MetroColorStyle.Teal;
+            this.lblBWMSpeedDownTitle.StyleManager = this.styleManager;
+            this.lblBWMSpeedDownTitle.TabIndex = 3;
+            this.lblBWMSpeedDownTitle.Text = "Download";
+            this.lblBWMSpeedDownTitle.Theme = MetroFramework.MetroThemeStyle.Light;
+            this.lblBWMSpeedDownTitle.UseStyleColors = false;
             // 
             // lblBWMUsageToTitle
             // 
@@ -239,6 +255,55 @@
             this.lblBWMUsageToTitle.Text = "to";
             this.lblBWMUsageToTitle.Theme = MetroFramework.MetroThemeStyle.Light;
             this.lblBWMUsageToTitle.UseStyleColors = false;
+            // 
+            // lblBWMEnableSpeedTitle
+            // 
+            this.lblBWMEnableSpeedTitle.AutoSize = true;
+            this.lblBWMEnableSpeedTitle.CustomBackground = false;
+            this.lblBWMEnableSpeedTitle.CustomForeColor = false;
+            this.lblBWMEnableSpeedTitle.FontSize = MetroFramework.MetroLabelSize.Medium;
+            this.lblBWMEnableSpeedTitle.FontWeight = MetroFramework.MetroLabelWeight.Light;
+            this.lblBWMEnableSpeedTitle.LabelMode = MetroFramework.Controls.MetroLabelMode.Default;
+            this.lblBWMEnableSpeedTitle.Location = new System.Drawing.Point(27, 47);
+            this.lblBWMEnableSpeedTitle.Name = "lblBWMEnableSpeedTitle";
+            this.lblBWMEnableSpeedTitle.Size = new System.Drawing.Size(178, 19);
+            this.lblBWMEnableSpeedTitle.Style = MetroFramework.MetroColorStyle.Blue;
+            this.lblBWMEnableSpeedTitle.StyleManager = null;
+            this.lblBWMEnableSpeedTitle.TabIndex = 26;
+            this.lblBWMEnableSpeedTitle.Text = "Enable to see current Speeds";
+            this.lblBWMEnableSpeedTitle.Theme = MetroFramework.MetroThemeStyle.Light;
+            this.lblBWMEnableSpeedTitle.UseStyleColors = false;
+            // 
+            // btnBWMEnableDaily
+            // 
+            this.btnBWMEnableDaily.Highlight = false;
+            this.btnBWMEnableDaily.Location = new System.Drawing.Point(48, 252);
+            this.btnBWMEnableDaily.Name = "btnBWMEnableDaily";
+            this.btnBWMEnableDaily.Size = new System.Drawing.Size(145, 23);
+            this.btnBWMEnableDaily.Style = MetroFramework.MetroColorStyle.Blue;
+            this.btnBWMEnableDaily.StyleManager = null;
+            this.btnBWMEnableDaily.TabIndex = 25;
+            this.btnBWMEnableDaily.Text = "Enable Daily Monitoring";
+            this.btnBWMEnableDaily.Theme = MetroFramework.MetroThemeStyle.Light;
+            this.btnBWMEnableDaily.Click += new System.EventHandler(this.btnBWMEnableDaily_Click);
+            // 
+            // lblBWMEnableDailyMonitoringTitle
+            // 
+            this.lblBWMEnableDailyMonitoringTitle.AutoSize = true;
+            this.lblBWMEnableDailyMonitoringTitle.CustomBackground = false;
+            this.lblBWMEnableDailyMonitoringTitle.CustomForeColor = false;
+            this.lblBWMEnableDailyMonitoringTitle.FontSize = MetroFramework.MetroLabelSize.Medium;
+            this.lblBWMEnableDailyMonitoringTitle.FontWeight = MetroFramework.MetroLabelWeight.Light;
+            this.lblBWMEnableDailyMonitoringTitle.LabelMode = MetroFramework.Controls.MetroLabelMode.Default;
+            this.lblBWMEnableDailyMonitoringTitle.Location = new System.Drawing.Point(8, 222);
+            this.lblBWMEnableDailyMonitoringTitle.Name = "lblBWMEnableDailyMonitoringTitle";
+            this.lblBWMEnableDailyMonitoringTitle.Size = new System.Drawing.Size(234, 19);
+            this.lblBWMEnableDailyMonitoringTitle.Style = MetroFramework.MetroColorStyle.Blue;
+            this.lblBWMEnableDailyMonitoringTitle.StyleManager = null;
+            this.lblBWMEnableDailyMonitoringTitle.TabIndex = 24;
+            this.lblBWMEnableDailyMonitoringTitle.Text = "Enable Daily Monitoring to view Usage";
+            this.lblBWMEnableDailyMonitoringTitle.Theme = MetroFramework.MetroThemeStyle.Light;
+            this.lblBWMEnableDailyMonitoringTitle.UseStyleColors = false;
             // 
             // lblBWMUsageTotal
             // 
@@ -294,23 +359,23 @@
             this.dtpBWMUsageFrom.TabIndex = 20;
             this.dtpBWMUsageFrom.ValueChanged += new System.EventHandler(this.dtpBWMUsageFrom_ValueChanged);
             // 
-            // lblBWMUpTitle
+            // lblBWMSpeedUpTitle
             // 
-            this.lblBWMUpTitle.AutoSize = true;
-            this.lblBWMUpTitle.CustomBackground = false;
-            this.lblBWMUpTitle.CustomForeColor = false;
-            this.lblBWMUpTitle.FontSize = MetroFramework.MetroLabelSize.Small;
-            this.lblBWMUpTitle.FontWeight = MetroFramework.MetroLabelWeight.Light;
-            this.lblBWMUpTitle.LabelMode = MetroFramework.Controls.MetroLabelMode.Default;
-            this.lblBWMUpTitle.Location = new System.Drawing.Point(122, 67);
-            this.lblBWMUpTitle.Name = "lblBWMUpTitle";
-            this.lblBWMUpTitle.Size = new System.Drawing.Size(44, 15);
-            this.lblBWMUpTitle.Style = MetroFramework.MetroColorStyle.Teal;
-            this.lblBWMUpTitle.StyleManager = this.styleManager;
-            this.lblBWMUpTitle.TabIndex = 6;
-            this.lblBWMUpTitle.Text = "Upload";
-            this.lblBWMUpTitle.Theme = MetroFramework.MetroThemeStyle.Light;
-            this.lblBWMUpTitle.UseStyleColors = false;
+            this.lblBWMSpeedUpTitle.AutoSize = true;
+            this.lblBWMSpeedUpTitle.CustomBackground = false;
+            this.lblBWMSpeedUpTitle.CustomForeColor = false;
+            this.lblBWMSpeedUpTitle.FontSize = MetroFramework.MetroLabelSize.Small;
+            this.lblBWMSpeedUpTitle.FontWeight = MetroFramework.MetroLabelWeight.Light;
+            this.lblBWMSpeedUpTitle.LabelMode = MetroFramework.Controls.MetroLabelMode.Default;
+            this.lblBWMSpeedUpTitle.Location = new System.Drawing.Point(122, 67);
+            this.lblBWMSpeedUpTitle.Name = "lblBWMSpeedUpTitle";
+            this.lblBWMSpeedUpTitle.Size = new System.Drawing.Size(44, 15);
+            this.lblBWMSpeedUpTitle.Style = MetroFramework.MetroColorStyle.Teal;
+            this.lblBWMSpeedUpTitle.StyleManager = this.styleManager;
+            this.lblBWMSpeedUpTitle.TabIndex = 6;
+            this.lblBWMSpeedUpTitle.Text = "Upload";
+            this.lblBWMSpeedUpTitle.Theme = MetroFramework.MetroThemeStyle.Light;
+            this.lblBWMSpeedUpTitle.UseStyleColors = false;
             // 
             // lblBWMUsageTotalTitle
             // 
@@ -502,7 +567,20 @@
             // 
             // tpSettings
             // 
-            this.tpSettings.Controls.Add(this.tcSettings);
+            this.tpSettings.Controls.Add(this.lblSettingsAdvancedTitle);
+            this.tpSettings.Controls.Add(this.lblSettingsGeneralTitle);
+            this.tpSettings.Controls.Add(this.btnSettingsBWMUninstallService);
+            this.tpSettings.Controls.Add(this.lblSettingsGeneralColorTitle);
+            this.tpSettings.Controls.Add(this.lblSettingsBWMUnit);
+            this.tpSettings.Controls.Add(this.lblSettingsBWMSpeed);
+            this.tpSettings.Controls.Add(this.cboSettingsGeneralColor);
+            this.tpSettings.Controls.Add(this.cboSettingsBWMUnit);
+            this.tpSettings.Controls.Add(this.lblSettingsBWMTitle);
+            this.tpSettings.Controls.Add(this.togSettingsBWMDaily);
+            this.tpSettings.Controls.Add(this.togSettingsBWMOnStart);
+            this.tpSettings.Controls.Add(this.lblSettingsBWMDaily);
+            this.tpSettings.Controls.Add(this.togSettingsBWMSpeed);
+            this.tpSettings.Controls.Add(this.lblSettingsBWMAutoStart);
             this.tpSettings.CustomBackground = false;
             this.tpSettings.HorizontalScrollbar = false;
             this.tpSettings.HorizontalScrollbarBarColor = true;
@@ -521,50 +599,6 @@
             this.tpSettings.VerticalScrollbarHighlightOnWheel = false;
             this.tpSettings.VerticalScrollbarSize = 10;
             // 
-            // tcSettings
-            // 
-            this.tcSettings.Anchor = ((System.Windows.Forms.AnchorStyles)((((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Bottom) 
-            | System.Windows.Forms.AnchorStyles.Left) 
-            | System.Windows.Forms.AnchorStyles.Right)));
-            this.tcSettings.Controls.Add(this.tpSettingsGeneral);
-            this.tcSettings.Controls.Add(this.tpSettingsBWM);
-            this.tcSettings.Controls.Add(this.tpAdvanced);
-            this.tcSettings.CustomBackground = false;
-            this.tcSettings.FontSize = MetroFramework.MetroTabControlSize.Medium;
-            this.tcSettings.FontWeight = MetroFramework.MetroTabControlWeight.Light;
-            this.tcSettings.Location = new System.Drawing.Point(3, 3);
-            this.tcSettings.Name = "tcSettings";
-            this.tcSettings.SelectedIndex = 0;
-            this.tcSettings.Size = new System.Drawing.Size(606, 301);
-            this.tcSettings.Style = MetroFramework.MetroColorStyle.Teal;
-            this.tcSettings.StyleManager = this.styleManager;
-            this.tcSettings.TabIndex = 11;
-            this.tcSettings.TextAlign = System.Drawing.ContentAlignment.MiddleLeft;
-            this.tcSettings.Theme = MetroFramework.MetroThemeStyle.Light;
-            this.tcSettings.UseStyleColors = false;
-            // 
-            // tpSettingsGeneral
-            // 
-            this.tpSettingsGeneral.Controls.Add(this.lblSettingsGeneralColorTitle);
-            this.tpSettingsGeneral.Controls.Add(this.cboSettingsGeneralColor);
-            this.tpSettingsGeneral.CustomBackground = false;
-            this.tpSettingsGeneral.HorizontalScrollbar = false;
-            this.tpSettingsGeneral.HorizontalScrollbarBarColor = true;
-            this.tpSettingsGeneral.HorizontalScrollbarHighlightOnWheel = false;
-            this.tpSettingsGeneral.HorizontalScrollbarSize = 10;
-            this.tpSettingsGeneral.Location = new System.Drawing.Point(4, 35);
-            this.tpSettingsGeneral.Name = "tpSettingsGeneral";
-            this.tpSettingsGeneral.Size = new System.Drawing.Size(598, 262);
-            this.tpSettingsGeneral.Style = MetroFramework.MetroColorStyle.Blue;
-            this.tpSettingsGeneral.StyleManager = null;
-            this.tpSettingsGeneral.TabIndex = 2;
-            this.tpSettingsGeneral.Text = "General";
-            this.tpSettingsGeneral.Theme = MetroFramework.MetroThemeStyle.Light;
-            this.tpSettingsGeneral.VerticalScrollbar = false;
-            this.tpSettingsGeneral.VerticalScrollbarBarColor = true;
-            this.tpSettingsGeneral.VerticalScrollbarHighlightOnWheel = false;
-            this.tpSettingsGeneral.VerticalScrollbarSize = 10;
-            // 
             // lblSettingsGeneralColorTitle
             // 
             this.lblSettingsGeneralColorTitle.AutoSize = true;
@@ -573,7 +607,7 @@
             this.lblSettingsGeneralColorTitle.FontSize = MetroFramework.MetroLabelSize.Medium;
             this.lblSettingsGeneralColorTitle.FontWeight = MetroFramework.MetroLabelWeight.Light;
             this.lblSettingsGeneralColorTitle.LabelMode = MetroFramework.Controls.MetroLabelMode.Default;
-            this.lblSettingsGeneralColorTitle.Location = new System.Drawing.Point(17, 24);
+            this.lblSettingsGeneralColorTitle.Location = new System.Drawing.Point(334, 69);
             this.lblSettingsGeneralColorTitle.Name = "lblSettingsGeneralColorTitle";
             this.lblSettingsGeneralColorTitle.Size = new System.Drawing.Size(96, 19);
             this.lblSettingsGeneralColorTitle.Style = MetroFramework.MetroColorStyle.Blue;
@@ -591,7 +625,7 @@
             this.cboSettingsGeneralColor.FontWeight = MetroFramework.MetroLinkWeight.Regular;
             this.cboSettingsGeneralColor.FormattingEnabled = true;
             this.cboSettingsGeneralColor.ItemHeight = 23;
-            this.cboSettingsGeneralColor.Location = new System.Drawing.Point(119, 21);
+            this.cboSettingsGeneralColor.Location = new System.Drawing.Point(436, 66);
             this.cboSettingsGeneralColor.Name = "cboSettingsGeneralColor";
             this.cboSettingsGeneralColor.Size = new System.Drawing.Size(121, 29);
             this.cboSettingsGeneralColor.Style = MetroFramework.MetroColorStyle.Blue;
@@ -599,34 +633,6 @@
             this.cboSettingsGeneralColor.TabIndex = 2;
             this.cboSettingsGeneralColor.Theme = MetroFramework.MetroThemeStyle.Light;
             this.cboSettingsGeneralColor.SelectionChangeCommitted += new System.EventHandler(this.cboSettingsGeneralColor_SelectionChangeCommitted);
-            // 
-            // tpSettingsBWM
-            // 
-            this.tpSettingsBWM.Controls.Add(this.lblSettingsBWMUnit);
-            this.tpSettingsBWM.Controls.Add(this.lblSettingsBWMSpeed);
-            this.tpSettingsBWM.Controls.Add(this.lblSettingsBWMDaily);
-            this.tpSettingsBWM.Controls.Add(this.lblSettingsBWMAutoStart);
-            this.tpSettingsBWM.Controls.Add(this.cboSettingsBWMUnit);
-            this.tpSettingsBWM.Controls.Add(this.togSettingsBWMOnStart);
-            this.tpSettingsBWM.Controls.Add(this.togSettingsBWMSpeed);
-            this.tpSettingsBWM.Controls.Add(this.togSettingsBWMDaily);
-            this.tpSettingsBWM.CustomBackground = false;
-            this.tpSettingsBWM.HorizontalScrollbar = false;
-            this.tpSettingsBWM.HorizontalScrollbarBarColor = true;
-            this.tpSettingsBWM.HorizontalScrollbarHighlightOnWheel = false;
-            this.tpSettingsBWM.HorizontalScrollbarSize = 10;
-            this.tpSettingsBWM.Location = new System.Drawing.Point(4, 35);
-            this.tpSettingsBWM.Name = "tpSettingsBWM";
-            this.tpSettingsBWM.Size = new System.Drawing.Size(598, 262);
-            this.tpSettingsBWM.Style = MetroFramework.MetroColorStyle.Teal;
-            this.tpSettingsBWM.StyleManager = this.styleManager;
-            this.tpSettingsBWM.TabIndex = 0;
-            this.tpSettingsBWM.Text = "Bandwidth Monitor";
-            this.tpSettingsBWM.Theme = MetroFramework.MetroThemeStyle.Light;
-            this.tpSettingsBWM.VerticalScrollbar = false;
-            this.tpSettingsBWM.VerticalScrollbarBarColor = true;
-            this.tpSettingsBWM.VerticalScrollbarHighlightOnWheel = false;
-            this.tpSettingsBWM.VerticalScrollbarSize = 10;
             // 
             // lblSettingsBWMUnit
             // 
@@ -636,7 +642,7 @@
             this.lblSettingsBWMUnit.FontSize = MetroFramework.MetroLabelSize.Medium;
             this.lblSettingsBWMUnit.FontWeight = MetroFramework.MetroLabelWeight.Light;
             this.lblSettingsBWMUnit.LabelMode = MetroFramework.Controls.MetroLabelMode.Default;
-            this.lblSettingsBWMUnit.Location = new System.Drawing.Point(13, 130);
+            this.lblSettingsBWMUnit.Location = new System.Drawing.Point(25, 176);
             this.lblSettingsBWMUnit.Name = "lblSettingsBWMUnit";
             this.lblSettingsBWMUnit.Size = new System.Drawing.Size(132, 19);
             this.lblSettingsBWMUnit.Style = MetroFramework.MetroColorStyle.Teal;
@@ -654,7 +660,7 @@
             this.lblSettingsBWMSpeed.FontSize = MetroFramework.MetroLabelSize.Medium;
             this.lblSettingsBWMSpeed.FontWeight = MetroFramework.MetroLabelWeight.Light;
             this.lblSettingsBWMSpeed.LabelMode = MetroFramework.Controls.MetroLabelMode.Default;
-            this.lblSettingsBWMSpeed.Location = new System.Drawing.Point(13, 21);
+            this.lblSettingsBWMSpeed.Location = new System.Drawing.Point(25, 67);
             this.lblSettingsBWMSpeed.Name = "lblSettingsBWMSpeed";
             this.lblSettingsBWMSpeed.Size = new System.Drawing.Size(115, 19);
             this.lblSettingsBWMSpeed.Style = MetroFramework.MetroColorStyle.Teal;
@@ -672,7 +678,7 @@
             this.lblSettingsBWMDaily.FontSize = MetroFramework.MetroLabelSize.Medium;
             this.lblSettingsBWMDaily.FontWeight = MetroFramework.MetroLabelWeight.Light;
             this.lblSettingsBWMDaily.LabelMode = MetroFramework.Controls.MetroLabelMode.Default;
-            this.lblSettingsBWMDaily.Location = new System.Drawing.Point(13, 44);
+            this.lblSettingsBWMDaily.Location = new System.Drawing.Point(25, 90);
             this.lblSettingsBWMDaily.Name = "lblSettingsBWMDaily";
             this.lblSettingsBWMDaily.Size = new System.Drawing.Size(128, 19);
             this.lblSettingsBWMDaily.Style = MetroFramework.MetroColorStyle.Teal;
@@ -690,7 +696,7 @@
             this.lblSettingsBWMAutoStart.FontSize = MetroFramework.MetroLabelSize.Medium;
             this.lblSettingsBWMAutoStart.FontWeight = MetroFramework.MetroLabelWeight.Light;
             this.lblSettingsBWMAutoStart.LabelMode = MetroFramework.Controls.MetroLabelMode.Default;
-            this.lblSettingsBWMAutoStart.Location = new System.Drawing.Point(13, 68);
+            this.lblSettingsBWMAutoStart.Location = new System.Drawing.Point(25, 114);
             this.lblSettingsBWMAutoStart.Name = "lblSettingsBWMAutoStart";
             this.lblSettingsBWMAutoStart.Size = new System.Drawing.Size(98, 19);
             this.lblSettingsBWMAutoStart.Style = MetroFramework.MetroColorStyle.Teal;
@@ -714,7 +720,7 @@
             "KB",
             "MB",
             "GB"});
-            this.cboSettingsBWMUnit.Location = new System.Drawing.Point(158, 125);
+            this.cboSettingsBWMUnit.Location = new System.Drawing.Point(170, 171);
             this.cboSettingsBWMUnit.Name = "cboSettingsBWMUnit";
             this.cboSettingsBWMUnit.Size = new System.Drawing.Size(79, 29);
             this.cboSettingsBWMUnit.Style = MetroFramework.MetroColorStyle.Teal;
@@ -730,7 +736,7 @@
             this.togSettingsBWMOnStart.DisplayStatus = true;
             this.togSettingsBWMOnStart.FontSize = MetroFramework.MetroLinkSize.Small;
             this.togSettingsBWMOnStart.FontWeight = MetroFramework.MetroLinkWeight.Regular;
-            this.togSettingsBWMOnStart.Location = new System.Drawing.Point(157, 70);
+            this.togSettingsBWMOnStart.Location = new System.Drawing.Point(169, 116);
             this.togSettingsBWMOnStart.Name = "togSettingsBWMOnStart";
             this.togSettingsBWMOnStart.Size = new System.Drawing.Size(80, 17);
             this.togSettingsBWMOnStart.Style = MetroFramework.MetroColorStyle.Teal;
@@ -749,7 +755,7 @@
             this.togSettingsBWMSpeed.DisplayStatus = true;
             this.togSettingsBWMSpeed.FontSize = MetroFramework.MetroLinkSize.Small;
             this.togSettingsBWMSpeed.FontWeight = MetroFramework.MetroLinkWeight.Regular;
-            this.togSettingsBWMSpeed.Location = new System.Drawing.Point(157, 23);
+            this.togSettingsBWMSpeed.Location = new System.Drawing.Point(169, 69);
             this.togSettingsBWMSpeed.Name = "togSettingsBWMSpeed";
             this.togSettingsBWMSpeed.Size = new System.Drawing.Size(80, 17);
             this.togSettingsBWMSpeed.Style = MetroFramework.MetroColorStyle.Teal;
@@ -768,7 +774,7 @@
             this.togSettingsBWMDaily.DisplayStatus = true;
             this.togSettingsBWMDaily.FontSize = MetroFramework.MetroLinkSize.Small;
             this.togSettingsBWMDaily.FontWeight = MetroFramework.MetroLinkWeight.Regular;
-            this.togSettingsBWMDaily.Location = new System.Drawing.Point(157, 46);
+            this.togSettingsBWMDaily.Location = new System.Drawing.Point(169, 92);
             this.togSettingsBWMDaily.Name = "togSettingsBWMDaily";
             this.togSettingsBWMDaily.Size = new System.Drawing.Size(80, 17);
             this.togSettingsBWMDaily.Style = MetroFramework.MetroColorStyle.Teal;
@@ -780,31 +786,10 @@
             this.togSettingsBWMDaily.UseVisualStyleBackColor = true;
             this.togSettingsBWMDaily.CheckedChanged += new System.EventHandler(this.togSettingsBWMDaily_CheckedChanged);
             // 
-            // tpAdvanced
-            // 
-            this.tpAdvanced.Controls.Add(this.btnSettingsBWMUninstallService);
-            this.tpAdvanced.CustomBackground = false;
-            this.tpAdvanced.HorizontalScrollbar = false;
-            this.tpAdvanced.HorizontalScrollbarBarColor = true;
-            this.tpAdvanced.HorizontalScrollbarHighlightOnWheel = false;
-            this.tpAdvanced.HorizontalScrollbarSize = 10;
-            this.tpAdvanced.Location = new System.Drawing.Point(4, 35);
-            this.tpAdvanced.Name = "tpAdvanced";
-            this.tpAdvanced.Size = new System.Drawing.Size(598, 262);
-            this.tpAdvanced.Style = MetroFramework.MetroColorStyle.Blue;
-            this.tpAdvanced.StyleManager = null;
-            this.tpAdvanced.TabIndex = 1;
-            this.tpAdvanced.Text = "Advanced";
-            this.tpAdvanced.Theme = MetroFramework.MetroThemeStyle.Light;
-            this.tpAdvanced.VerticalScrollbar = false;
-            this.tpAdvanced.VerticalScrollbarBarColor = true;
-            this.tpAdvanced.VerticalScrollbarHighlightOnWheel = false;
-            this.tpAdvanced.VerticalScrollbarSize = 10;
-            // 
             // btnSettingsBWMUninstallService
             // 
             this.btnSettingsBWMUninstallService.Highlight = false;
-            this.btnSettingsBWMUninstallService.Location = new System.Drawing.Point(15, 31);
+            this.btnSettingsBWMUninstallService.Location = new System.Drawing.Point(334, 191);
             this.btnSettingsBWMUninstallService.Name = "btnSettingsBWMUninstallService";
             this.btnSettingsBWMUninstallService.Size = new System.Drawing.Size(111, 28);
             this.btnSettingsBWMUninstallService.Style = MetroFramework.MetroColorStyle.Teal;
@@ -907,6 +892,60 @@
             this.btnAboutDeveloperSite.Theme = MetroFramework.MetroThemeStyle.Light;
             this.btnAboutDeveloperSite.Click += new System.EventHandler(this.btnAboutDeveloperSite_Click);
             // 
+            // lblSettingsBWMTitle
+            // 
+            this.lblSettingsBWMTitle.AutoSize = true;
+            this.lblSettingsBWMTitle.CustomBackground = false;
+            this.lblSettingsBWMTitle.CustomForeColor = false;
+            this.lblSettingsBWMTitle.FontSize = MetroFramework.MetroLabelSize.Tall;
+            this.lblSettingsBWMTitle.FontWeight = MetroFramework.MetroLabelWeight.Light;
+            this.lblSettingsBWMTitle.LabelMode = MetroFramework.Controls.MetroLabelMode.Default;
+            this.lblSettingsBWMTitle.Location = new System.Drawing.Point(25, 24);
+            this.lblSettingsBWMTitle.Name = "lblSettingsBWMTitle";
+            this.lblSettingsBWMTitle.Size = new System.Drawing.Size(221, 25);
+            this.lblSettingsBWMTitle.Style = MetroFramework.MetroColorStyle.Blue;
+            this.lblSettingsBWMTitle.StyleManager = null;
+            this.lblSettingsBWMTitle.TabIndex = 15;
+            this.lblSettingsBWMTitle.Text = "Bandwidth Monitor Settings";
+            this.lblSettingsBWMTitle.Theme = MetroFramework.MetroThemeStyle.Light;
+            this.lblSettingsBWMTitle.UseStyleColors = false;
+            // 
+            // lblSettingsGeneralTitle
+            // 
+            this.lblSettingsGeneralTitle.AutoSize = true;
+            this.lblSettingsGeneralTitle.CustomBackground = false;
+            this.lblSettingsGeneralTitle.CustomForeColor = false;
+            this.lblSettingsGeneralTitle.FontSize = MetroFramework.MetroLabelSize.Tall;
+            this.lblSettingsGeneralTitle.FontWeight = MetroFramework.MetroLabelWeight.Light;
+            this.lblSettingsGeneralTitle.LabelMode = MetroFramework.Controls.MetroLabelMode.Default;
+            this.lblSettingsGeneralTitle.Location = new System.Drawing.Point(334, 24);
+            this.lblSettingsGeneralTitle.Name = "lblSettingsGeneralTitle";
+            this.lblSettingsGeneralTitle.Size = new System.Drawing.Size(135, 25);
+            this.lblSettingsGeneralTitle.Style = MetroFramework.MetroColorStyle.Blue;
+            this.lblSettingsGeneralTitle.StyleManager = null;
+            this.lblSettingsGeneralTitle.TabIndex = 16;
+            this.lblSettingsGeneralTitle.Text = "General Settings";
+            this.lblSettingsGeneralTitle.Theme = MetroFramework.MetroThemeStyle.Light;
+            this.lblSettingsGeneralTitle.UseStyleColors = false;
+            // 
+            // lblSettingsAdvancedTitle
+            // 
+            this.lblSettingsAdvancedTitle.AutoSize = true;
+            this.lblSettingsAdvancedTitle.CustomBackground = false;
+            this.lblSettingsAdvancedTitle.CustomForeColor = false;
+            this.lblSettingsAdvancedTitle.FontSize = MetroFramework.MetroLabelSize.Tall;
+            this.lblSettingsAdvancedTitle.FontWeight = MetroFramework.MetroLabelWeight.Light;
+            this.lblSettingsAdvancedTitle.LabelMode = MetroFramework.Controls.MetroLabelMode.Default;
+            this.lblSettingsAdvancedTitle.Location = new System.Drawing.Point(334, 153);
+            this.lblSettingsAdvancedTitle.Name = "lblSettingsAdvancedTitle";
+            this.lblSettingsAdvancedTitle.Size = new System.Drawing.Size(151, 25);
+            this.lblSettingsAdvancedTitle.Style = MetroFramework.MetroColorStyle.Blue;
+            this.lblSettingsAdvancedTitle.StyleManager = null;
+            this.lblSettingsAdvancedTitle.TabIndex = 17;
+            this.lblSettingsAdvancedTitle.Text = "Advanced Settings";
+            this.lblSettingsAdvancedTitle.Theme = MetroFramework.MetroThemeStyle.Light;
+            this.lblSettingsAdvancedTitle.UseStyleColors = false;
+            // 
             // frmModern
             // 
             this.AutoScaleDimensions = new System.Drawing.SizeF(6F, 13F);
@@ -925,12 +964,7 @@
             this.tpBWM.ResumeLayout(false);
             this.tpBWM.PerformLayout();
             this.tpSettings.ResumeLayout(false);
-            this.tcSettings.ResumeLayout(false);
-            this.tpSettingsGeneral.ResumeLayout(false);
-            this.tpSettingsGeneral.PerformLayout();
-            this.tpSettingsBWM.ResumeLayout(false);
-            this.tpSettingsBWM.PerformLayout();
-            this.tpAdvanced.ResumeLayout(false);
+            this.tpSettings.PerformLayout();
             this.tpAbout.ResumeLayout(false);
             this.tpAbout.PerformLayout();
             this.ResumeLayout(false);
@@ -949,17 +983,15 @@
         private MetroFramework.Controls.MetroToggle togSettingsBWMSpeed;
         private MetroFramework.Controls.MetroToggle togSettingsBWMOnStart;
         private MetroFramework.Controls.MetroLabel lblSettingsBWMAutoStart;
-        private MetroFramework.Controls.MetroLabel lblBWMDownTitle;
+        private MetroFramework.Controls.MetroLabel lblBWMSpeedDownTitle;
         private MetroFramework.Controls.MetroLabel lblBWMSpeedsTitle;
         private MetroFramework.Controls.MetroLabel lblAboutBlurb;
         private MetroFramework.Controls.MetroLabel lblAboutDeveloper;
         private MetroFramework.Controls.MetroButton btnAboutGithub;
         private MetroFramework.Controls.MetroButton btnAboutDeveloperSite;
-        private MetroFramework.Controls.MetroLabel lblBWMUpTitle;
+        private MetroFramework.Controls.MetroLabel lblBWMSpeedUpTitle;
         private MetroFramework.Controls.MetroLabel lblBWMSpeedUp;
         private MetroFramework.Controls.MetroLabel lblBWMSpeedDown;
-        private MetroFramework.Controls.MetroTabControl tcSettings;
-        private MetroFramework.Controls.MetroTabPage tpSettingsBWM;
         private MetroFramework.Controls.MetroLabel lblSettingsBWMUnit;
         private MetroFramework.Controls.MetroComboBox cboSettingsBWMUnit;
         private MetroFramework.Controls.MetroComboBox cboBWMUsagePeriod;
@@ -981,10 +1013,15 @@
         private System.Windows.Forms.DateTimePicker dtpBWMUsageFrom;
         private MetroFramework.Controls.MetroLabel lblBWMUsageToTitle;
         private MetroFramework.Components.MetroStyleManager styleManager;
-        private MetroFramework.Controls.MetroTabPage tpAdvanced;
         private MetroFramework.Controls.MetroButton btnSettingsBWMUninstallService;
-        private MetroFramework.Controls.MetroTabPage tpSettingsGeneral;
         private MetroFramework.Controls.MetroComboBox cboSettingsGeneralColor;
         private MetroFramework.Controls.MetroLabel lblSettingsGeneralColorTitle;
+        private MetroFramework.Controls.MetroButton btnBWMEnableDaily;
+        private MetroFramework.Controls.MetroLabel lblBWMEnableDailyMonitoringTitle;
+        private MetroFramework.Controls.MetroButton btnBWMEnableSpeed;
+        private MetroFramework.Controls.MetroLabel lblBWMEnableSpeedTitle;
+        private MetroFramework.Controls.MetroLabel lblSettingsAdvancedTitle;
+        private MetroFramework.Controls.MetroLabel lblSettingsGeneralTitle;
+        private MetroFramework.Controls.MetroLabel lblSettingsBWMTitle;
     }
 }
