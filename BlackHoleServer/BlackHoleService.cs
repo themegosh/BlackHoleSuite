@@ -12,7 +12,7 @@ namespace BlackHoleServer
 {
     public partial class BlackHoleService : ServiceBase
     {
-        private BandwidthMonitor bandwidthMontior;
+        private BandwidthLogger bandwidthMontior;
 
         public BlackHoleService()
         {
@@ -31,7 +31,7 @@ namespace BlackHoleServer
         {
             try
             {
-                bandwidthMontior = new BandwidthMonitor();
+                bandwidthMontior = new BandwidthLogger();
                 bandwidthMontior.StartBandwidthLogging();
             }
             catch (Exception ex)

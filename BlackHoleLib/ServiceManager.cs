@@ -21,6 +21,8 @@ namespace BlackHoleLib
         {
             VerifyServiceFilePath();
             SetService();
+
+            BandwidthMontiorService = new ServiceController();
         }
 
         ~ServiceManager()
@@ -72,7 +74,10 @@ namespace BlackHoleLib
                 BandwidthMontiorService.Start();
                 BandwidthMontiorService.Refresh();
             }
-            catch { }
+            catch (Exception ex) 
+            {
+                throw ex;
+            }
         }
 
         public void Stop()

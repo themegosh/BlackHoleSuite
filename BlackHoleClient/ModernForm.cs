@@ -19,18 +19,20 @@ namespace BlackHoleClient
     public partial class frmModern : MetroForm
     {
         private const string APP_NAME = "Black Hole Suite";
-        private const string SHORT_DATE_FORMAT = "MM/dd/yyyy";
+        private const string SHORT_DATE_FORMAT = "MM'/'dd'/'yyyy";
         private const string LONG_DATE_FORMAT = "dddd, MMMM d, yyyy";
+        private const int REFRESH_INTERVAL = 500;
 
         private System.Windows.Forms.Timer tmrRapidRefresh; //timer for refreshing labels
         private System.Windows.Forms.Timer tmrSlowRefresh; //timer for refreshing heavy things like listviews
-        private BandwidthMonitor bandwidthMonitor;
+        private NetworkMonitor networkMonitor;
         private ServiceManager BWMService;
 
         public frmModern()
         {
             InitializeComponent();
 
+            networkMonitor = new NetworkMonitor(REFRESH_INTERVAL);
             BWMService = new ServiceManager();
             InitializeBWMControls();
 
@@ -41,7 +43,7 @@ namespace BlackHoleClient
             tmrSlowRefresh.Start();
 
             tmrRapidRefresh = new System.Windows.Forms.Timer();
-            tmrRapidRefresh.Interval = 500; //0.5s
+            tmrRapidRefresh.Interval = REFRESH_INTERVAL; //0.5s
             tmrRapidRefresh.Tick += new EventHandler(RapidRefreshTimer_Tick);
             tmrRapidRefresh.Start();
         }
@@ -50,9 +52,6 @@ namespace BlackHoleClient
         {
             if (!BlackHoleSuite.IsBWMAutoStart)
                 BWMService.Stop();
-
-            if (bandwidthMonitor != null)
-                bandwidthMonitor.Quit();
 
             if (disposing && (components != null))
             {
@@ -93,27 +92,39 @@ namespace BlackHoleClient
 
         private void RefreshBwmLight()
         {
-            if (togSettingsBWMSpeed.Checked)
+            MyInvoker((MethodInvoker)delegate()
             {
-                btnBWMEnableSpeed.Visible = false;
-                lblBWMEnableSpeedTitle.Visible = false;
-                lblBWMSpeedDown.Visible = true;
-                lblBWMSpeedDownTitle.Visible = true;
-                lblBWMSpeedUp.Visible = true;
-                lblBWMSpeedUpTitle.Visible = true;
+                if (togSettingsBWMSpeed.Checked)
+                {
+                    btnBWMEnableSpeed.Visible = false;
+                    lblBWMEnableSpeedTitle.Visible = false;
+                    lblBWMSpeedDown.Visible = true;
+                    lblBWMSpeedDownTitle.Visible = true;
+                    lblBWMSpeedUp.Visible = true;
+                    lblBWMSpeedUpTitle.Visible = true;
 
-                lblBWMSpeedDown.Text = BytesToUnit(bandwidthMonitor.SpeedDownload) + "/s";
-                lblBWMSpeedUp.Text = BytesToUnit(bandwidthMonitor.SpeedUpload) + "/s";
-            }
-            else
-            {
-                btnBWMEnableSpeed.Visible = true;
-                lblBWMEnableSpeedTitle.Visible = true;
-                lblBWMSpeedDown.Visible = false;
-                lblBWMSpeedDownTitle.Visible = false;
-                lblBWMSpeedUp.Visible = false;
-                lblBWMSpeedUpTitle.Visible = false;
-            }
+                    double speedDown = 0;
+                    double speedUp = 0;
+
+                    foreach (NetworkAdapter adapter in networkMonitor.Adapters)
+                    {
+                        speedDown += adapter.DownloadSpeed;
+                        speedUp += adapter.UploadSpeed;
+                    }
+
+                    lblBWMSpeedDown.Text = BytesToUnit(speedDown) + "/s";
+                    lblBWMSpeedUp.Text = BytesToUnit(speedUp) + "/s";
+                }
+                else
+                {
+                    btnBWMEnableSpeed.Visible = true;
+                    lblBWMEnableSpeedTitle.Visible = true;
+                    lblBWMSpeedDown.Visible = false;
+                    lblBWMSpeedDownTitle.Visible = false;
+                    lblBWMSpeedUp.Visible = false;
+                    lblBWMSpeedUpTitle.Visible = false;
+                }
+            });
         }
 
         private void RefreshBwmHeavy()
@@ -130,7 +141,7 @@ namespace BlackHoleClient
             int year = DateTime.Now.Year;
             int month = DateTime.Now.Month;
 
-            ConcurrentDictionary<string, BlackHoleLib.DayLog> daysData = BandwidthMonitor.getFreshBandwidthData();
+            ConcurrentDictionary<string, BlackHoleLib.DayLog> daysData = BandwidthLogger.getFreshBandwidthData();
 
             if (daysData.Count == 0 && BlackHoleSuite.IsBWMDailyUsage == false)
             {
@@ -250,6 +261,12 @@ namespace BlackHoleClient
             }
         }
 
+        private void MyInvoker(Delegate delegate_)
+        {
+            try { this.Invoke((MethodInvoker)delegate_); }
+            catch (Exception) { }
+        }
+
         private void PopulateTable(ConcurrentDictionary<string, BlackHoleLib.DayLog> daysData)
         {
             ListViewItem itemToAdd;
@@ -365,22 +382,12 @@ namespace BlackHoleClient
 
             if (togSettingsBWMSpeed.Checked)
             {
-                if (bandwidthMonitor == null)
-                {
-                    bandwidthMonitor = new BandwidthMonitor();
-                    bandwidthMonitor.StartSpeedMonitoring();
-                }
-                else
-                    bandwidthMonitor.ResumeSpeedMonitoring();
+                networkMonitor.StartMonitoring();
             }
             else
             {
-                if (bandwidthMonitor != null)
-                {
-                    bandwidthMonitor.PauseSpeedMonitoring();
-                }
+                networkMonitor.StopMonitoring();
             }
-            RefreshBwmLight();
         }
 
         private void togSettingsBWMDaily_CheckedChanged(object sender, EventArgs e)
