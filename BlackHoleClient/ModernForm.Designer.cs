@@ -90,7 +90,7 @@
             this.tcMainTabs.FontWeight = MetroFramework.MetroTabControlWeight.Light;
             this.tcMainTabs.Location = new System.Drawing.Point(23, 63);
             this.tcMainTabs.Name = "tcMainTabs";
-            this.tcMainTabs.SelectedIndex = 1;
+            this.tcMainTabs.SelectedIndex = 0;
             this.tcMainTabs.Size = new System.Drawing.Size(620, 339);
             this.tcMainTabs.Style = MetroFramework.MetroColorStyle.Teal;
             this.tcMainTabs.StyleManager = this.styleManager;
@@ -204,7 +204,7 @@
             this.lblBWMSpeedsTitle.FontSize = MetroFramework.MetroLabelSize.Tall;
             this.lblBWMSpeedsTitle.FontWeight = MetroFramework.MetroLabelWeight.Light;
             this.lblBWMSpeedsTitle.LabelMode = MetroFramework.Controls.MetroLabelMode.Default;
-            this.lblBWMSpeedsTitle.Location = new System.Drawing.Point(14, 17);
+            this.lblBWMSpeedsTitle.Location = new System.Drawing.Point(41, 17);
             this.lblBWMSpeedsTitle.Name = "lblBWMSpeedsTitle";
             this.lblBWMSpeedsTitle.Size = new System.Drawing.Size(121, 25);
             this.lblBWMSpeedsTitle.Style = MetroFramework.MetroColorStyle.Teal;
@@ -302,6 +302,7 @@
             this.lblBWMEnableDailyMonitoringTitle.StyleManager = null;
             this.lblBWMEnableDailyMonitoringTitle.TabIndex = 24;
             this.lblBWMEnableDailyMonitoringTitle.Text = "Enable Daily Monitoring to view Usage";
+            this.lblBWMEnableDailyMonitoringTitle.TextAlign = System.Drawing.ContentAlignment.MiddleCenter;
             this.lblBWMEnableDailyMonitoringTitle.Theme = MetroFramework.MetroThemeStyle.Light;
             this.lblBWMEnableDailyMonitoringTitle.UseStyleColors = false;
             // 
@@ -331,7 +332,7 @@
             this.lblBWMPeriodUsageTitle.FontSize = MetroFramework.MetroLabelSize.Tall;
             this.lblBWMPeriodUsageTitle.FontWeight = MetroFramework.MetroLabelWeight.Light;
             this.lblBWMPeriodUsageTitle.LabelMode = MetroFramework.Controls.MetroLabelMode.Default;
-            this.lblBWMPeriodUsageTitle.Location = new System.Drawing.Point(14, 103);
+            this.lblBWMPeriodUsageTitle.Location = new System.Drawing.Point(31, 100);
             this.lblBWMPeriodUsageTitle.Name = "lblBWMPeriodUsageTitle";
             this.lblBWMPeriodUsageTitle.Size = new System.Drawing.Size(144, 25);
             this.lblBWMPeriodUsageTitle.Style = MetroFramework.MetroColorStyle.Teal;
@@ -548,15 +549,14 @@
             this.lblBWMUsagePeriod.Anchor = ((System.Windows.Forms.AnchorStyles)((((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Bottom) 
             | System.Windows.Forms.AnchorStyles.Left) 
             | System.Windows.Forms.AnchorStyles.Right)));
-            this.lblBWMUsagePeriod.AutoSize = true;
             this.lblBWMUsagePeriod.CustomBackground = false;
             this.lblBWMUsagePeriod.CustomForeColor = false;
             this.lblBWMUsagePeriod.FontSize = MetroFramework.MetroLabelSize.Medium;
             this.lblBWMUsagePeriod.FontWeight = MetroFramework.MetroLabelWeight.Light;
             this.lblBWMUsagePeriod.LabelMode = MetroFramework.Controls.MetroLabelMode.Default;
-            this.lblBWMUsagePeriod.Location = new System.Drawing.Point(27, 178);
+            this.lblBWMUsagePeriod.Location = new System.Drawing.Point(8, 178);
             this.lblBWMUsagePeriod.Name = "lblBWMUsagePeriod";
-            this.lblBWMUsagePeriod.Size = new System.Drawing.Size(58, 19);
+            this.lblBWMUsagePeriod.Size = new System.Drawing.Size(231, 19);
             this.lblBWMUsagePeriod.Style = MetroFramework.MetroColorStyle.Teal;
             this.lblBWMUsagePeriod.StyleManager = this.styleManager;
             this.lblBWMUsagePeriod.TabIndex = 11;
